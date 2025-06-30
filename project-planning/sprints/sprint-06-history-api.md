@@ -1,5 +1,9 @@
 # Sprint 6: Query History API
 
+> **📊 SPRINT STATUS: 🔄 PENDING** (Requires Sprint 2-5 completion)  
+> **📚 COMPLETION TEMPLATE: Added below - use Sprint Completion Checklist when ready**  
+> **🔗 DEPENDENCIES: Sprint 2-5 (Database + FastAPI + Geocoding + Distance) must be complete**
+
 ## 🎯 Objective
 Implement the GET /history endpoint to retrieve past distance queries with pagination, filtering, sorting capabilities, and proper database optimization.
 

@@ -37,7 +37,9 @@ main (production) → develop (integration) → feature/sprint-XX-name
 - **IMPORTANT**: Only update sprint checkboxes at the very end of sprint completion
 - Review entire sprint file to verify all acceptance criteria were met
 - Check boxes for completed items and add notes for any deviations or differences
+- **REQUIRED**: Document all files created/modified with detailed descriptions
 - Add completion summary with date and key deliverables at end of sprint file
+- Use Sprint Completion Checklist to verify all requirements met
 - Create feature branch, commit with conventional format, merge to develop
 
 ## 📁 Key File Navigation

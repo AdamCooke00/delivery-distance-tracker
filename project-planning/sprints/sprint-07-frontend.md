@@ -1,5 +1,9 @@
 # Sprint 7: Frontend Implementation
 
+> **📊 SPRINT STATUS: 🔄 PENDING** (Requires Sprint 2-6 completion)  
+> **📚 COMPLETION TEMPLATE: Added below - use Sprint Completion Checklist when ready**  
+> **🔗 DEPENDENCIES: Sprint 2-6 (Backend foundation + Distance API + History API) must be complete**
+
 ## 🎯 Objective
 Implement the SvelteKit frontend application with address input components, results display, history view, and complete integration with the backend API including error handling.
 

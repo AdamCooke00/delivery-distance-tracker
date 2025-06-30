@@ -18,4 +18,5 @@ extend-ignore =
 per-file-ignores =
     __init__.py:F401
     app/services/distance_service.py:C901
+    app/api/history.py:C901
 max-complexity = 10

@@ -5,17 +5,26 @@ Provides pagination, filtering, sorting, and search capabilities.
 
 from datetime import datetime
 from typing import Optional, List
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, or_
 from pydantic import BaseModel, Field, validator
 from app.models.database import SessionLocal
 from app.models.distance_query import DistanceQuery
 import logging
+import re
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Secure mapping for sort columns - eliminates dynamic attribute access vulnerability
+SORT_COLUMNS = {
+    "created_at": DistanceQuery.created_at,
+    "distance_km": DistanceQuery.distance_km,
+    "source_address": DistanceQuery.source_address,
+    "destination_address": DistanceQuery.destination_address,
+}
 
 
 def get_db():
@@ -25,6 +34,15 @@ def get_db():
         yield db
     finally:
         db.close()
+
+
+def sanitize_search_term(search_term: str) -> str:
+    """Sanitize search input to prevent injection attacks"""
+    if not search_term:
+        return ""
+    # Remove potentially dangerous characters and limit length
+    sanitized = re.sub(r'[<>"\';\\]', "", search_term.strip())
+    return sanitized[:100]  # Limit to 100 characters
 
 
 class HistoryQueryParams(BaseModel):
@@ -88,83 +106,75 @@ class HistoryResponse(BaseModel):
 
 @router.get("/history", response_model=HistoryResponse)
 async def get_history(
-    limit: int = Query(10, ge=1, le=100, description="Number of items to return"),
-    offset: int = Query(0, ge=0, description="Number of items to skip"),
-    start_date: Optional[datetime] = Query(
-        None, description="Filter results from this date"
-    ),
-    end_date: Optional[datetime] = Query(
-        None, description="Filter results up to this date"
-    ),
-    search: Optional[str] = Query(None, description="Search in addresses"),
-    sort_by: str = Query(
-        "created_at",
-        pattern="^(created_at|distance_km|source_address|destination_address)$",
-        description="Field to sort by",
-    ),
-    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order"),
+    params: HistoryQueryParams = Depends(),
     db: Session = Depends(get_db),
 ):
     """
     Retrieve history of distance queries with pagination and filtering.
 
-    - **limit**: Maximum number of results to return (1-100)
-    - **offset**: Number of results to skip for pagination
-    - **start_date**: Filter results from this date (ISO format)
-    - **end_date**: Filter results up to this date (ISO format)
-    - **search**: Search term for filtering by addresses
-    - **sort_by**: Field to sort by (created_at, distance_km, source_address, destination_address)
-    - **sort_order**: Sort order (asc or desc)
+    Security features:
+    - All parameter validation handled by Pydantic HistoryQueryParams model
+    - Secure column mapping prevents dynamic attribute access vulnerability
+    - Input sanitization for search terms prevents injection attacks
+    - Database-level pagination for performance
     """
     try:
         # Start building the query
         query = db.query(DistanceQuery)
 
         # Apply date filtering
-        if start_date:
-            query = query.filter(DistanceQuery.created_at >= start_date)
-        if end_date:
-            query = query.filter(DistanceQuery.created_at <= end_date)
+        if params.start_date:
+            query = query.filter(DistanceQuery.created_at >= params.start_date)
+        if params.end_date:
+            query = query.filter(DistanceQuery.created_at <= params.end_date)
 
-        # Apply search filtering
-        if search:
-            search_term = f"%{search}%"
-            query = query.filter(
-                or_(
-                    DistanceQuery.source_address.ilike(search_term),
-                    DistanceQuery.destination_address.ilike(search_term),
+        # Apply search filtering with sanitization
+        if params.search:
+            sanitized_search = sanitize_search_term(params.search)
+            if (
+                sanitized_search
+            ):  # Only search if we have valid terms after sanitization
+                search_term = f"%{sanitized_search}%"
+                query = query.filter(
+                    or_(
+                        DistanceQuery.source_address.ilike(search_term),
+                        DistanceQuery.destination_address.ilike(search_term),
+                    )
                 )
-            )
 
         # Get total count before pagination
         total = query.count()
 
-        # Apply sorting
-        sort_column = getattr(DistanceQuery, sort_by)
-        if sort_order == "desc":
+        # Apply sorting using secure column mapping
+        # Note: sort_by validation is handled by Pydantic Field pattern validation
+        sort_column = SORT_COLUMNS[params.sort_by]
+        if params.sort_order == "desc":
             query = query.order_by(desc(sort_column))
         else:
             query = query.order_by(asc(sort_column))
 
         # Apply pagination
-        items = query.offset(offset).limit(limit).all()
+        items = query.offset(params.offset).limit(params.limit).all()
 
         # Check if there are more results
-        has_more = (offset + len(items)) < total
+        has_more = (params.offset + len(items)) < total
 
         logger.info(
             f"Retrieved {len(items)} history items (total: {total}, "
-            f"offset: {offset}, limit: {limit})"
+            f"offset: {params.offset}, limit: {params.limit})"
         )
 
         return HistoryResponse(
             items=[HistoryItem.model_validate(item) for item in items],
             total=total,
-            limit=limit,
-            offset=offset,
+            limit=params.limit,
+            offset=params.offset,
             has_more=has_more,
         )
 
+    except HTTPException:
+        # Re-raise HTTP exceptions (validation errors)
+        raise
     except Exception as e:
         logger.error(f"Error retrieving history: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to retrieve history")

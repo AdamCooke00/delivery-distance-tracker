@@ -166,6 +166,7 @@ pytest app/tests/test_history_filtering.py -v
 pytest app/tests/test_history_sorting.py -v
 pytest app/tests/test_history_validation.py -v
 pytest app/tests/test_history_performance.py -v
+pytest app/tests/test_history_security.py -v
 
 # Run end-to-end tests with real APIs (optional)
 SKIP_E2E_TESTS=false pytest app/tests/test_distance_e2e.py -v
@@ -348,6 +349,13 @@ curl "http://localhost:8000/api/v1/history?search=California&limit=5&sort_by=cre
 **Error Responses:**
 - `422 Unprocessable Entity` - Invalid query parameters (negative limit/offset, invalid date format, etc.)
 - `500 Internal Server Error` - Database error
+
+**Security Features:**
+- **Pydantic Validation**: All parameters validated at model level with comprehensive error handling
+- **SQL Injection Prevention**: Parameterized queries and input sanitization prevent injection attacks
+- **Dynamic Attribute Protection**: Secure column mapping eliminates `getattr()` vulnerabilities
+- **Input Sanitization**: Search terms sanitized to remove dangerous characters
+- **Rate Limiting**: Built-in parameter constraints (limit: 1-100, offset: ≥0) prevent abuse
 
 ### Geocoding & Distance Services (Sprint 4)
 

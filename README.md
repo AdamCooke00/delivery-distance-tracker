@@ -146,6 +146,13 @@ pytest app/tests/test_error_handling.py -v
 pytest app/tests/test_cors.py -v
 pytest app/tests/test_logging.py -v
 
+# Run geocoding and distance calculation tests (Sprint 4)
+pytest app/tests/test_address_validation.py -v
+pytest app/tests/test_distance_calculation.py -v
+pytest app/tests/test_geocoding_service.py -v
+pytest app/tests/test_geocoding_reliability.py -v
+pytest app/tests/test_geocoding_integration.py -v
+
 # Run tests with coverage
 pytest --cov=app --cov-report=html
 
@@ -189,8 +196,8 @@ git push -u origin feature/your-feature-name
 ├── app/                    # Backend FastAPI application
 │   ├── api/               # REST endpoint definitions
 │   ├── models/            # Database models and schemas
-│   ├── services/          # Business logic (geocoding, distance calc)
-│   ├── utils/             # Helper functions and utilities
+│   ├── services/          # Business logic (geocoding service)
+│   ├── utils/             # Helper functions (validation, distance calc, logging)
 │   └── tests/             # Unit and integration tests
 ├── frontend/              # SvelteKit application
 ├── docker/                # Container configurations
@@ -205,7 +212,7 @@ git push -u origin feature/your-feature-name
 
 ## 🎯 API Endpoints
 
-### Current Endpoints (Sprint 3)
+### Current Endpoints (Sprints 1-4)
 
 - `GET /` - Root endpoint with API information
 - `GET /api/v1/health` - Comprehensive health check
@@ -216,10 +223,19 @@ git push -u origin feature/your-feature-name
 - `GET /redoc` - ReDoc API documentation
 - `GET /openapi.json` - OpenAPI schema
 
+### Geocoding & Distance Services (Sprint 4)
+
+The application includes comprehensive geocoding and distance calculation capabilities:
+
+- **Address Validation**: Input sanitization and validation preventing XSS/SQL injection
+- **Nominatim Geocoding**: Async API client with rate limiting and error handling
+- **Distance Calculation**: Haversine formula with support for km/miles units
+- **Geographic Utilities**: Bearing calculation, bounding boxes, coordinate validation
+
 ### Future Endpoints (Coming in Next Sprints)
 
-- `POST /api/v1/distance` - Calculate distance between addresses
-- `GET /api/v1/history` - Retrieve past queries (paginated)
+- `POST /api/v1/distance` - Calculate distance between addresses (Sprint 5)
+- `GET /api/v1/history` - Retrieve past queries (paginated) (Sprint 6)
 
 ## 🔧 Development Commands
 

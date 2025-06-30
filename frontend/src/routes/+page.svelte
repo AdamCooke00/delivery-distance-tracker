@@ -1,39 +1,57 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { onMount } from 'svelte';
+	import { onMount, onDestroy } from 'svelte';
 	import { calculateDistance } from '$lib/services/api';
+	import { formatDistance, formatErrorMessage, getErrorType } from '$lib/utils/units';
+	import { getSafeStringParam, getSafeNumberParam, isValidAddress } from '$lib/utils/url';
 
-	let sourceAddress = $state('415 Mission St Suite 4800, San Francisco, CA 94105');
-	let destinationAddress = $state('3223 Hanover St Suite 110, Palo Alto, CA 94304');
+	let sourceAddress = $state('393 King St West Toronto');
+	let destinationAddress = $state('2 Bloor St E Toronto');
 	let selectedUnit = $state('both');
 	let result = $state<{ miles: number; km: number } | null>(null);
 	let isLoading = $state(false);
 	let error = $state<string | null>(null);
+	let errorType = $state<string>('general');
+	let errorTimeoutId: ReturnType<typeof setTimeout> | null = null;
 
 	// Computed property for button disabled state
 	let isButtonDisabled = $derived(!sourceAddress.trim() || !destinationAddress.trim() || isLoading);
 
-	// Handle URL parameters for prefilling data
+	// Handle URL parameters for prefilling data with validation
 	onMount(() => {
-		const urlParams = new URLSearchParams($page.url.search);
-		const source = urlParams.get('source');
-		const destination = urlParams.get('destination');
-		const miles = urlParams.get('miles');
-		const km = urlParams.get('km');
+		try {
+			const urlParams = new URLSearchParams($page.url.search);
+			const source = getSafeStringParam(urlParams, 'source');
+			const destination = getSafeStringParam(urlParams, 'destination');
+			const miles = getSafeNumberParam(urlParams, 'miles', 0, 50000);
+			const km = getSafeNumberParam(urlParams, 'km', 0, 80000);
 
-		if (source) sourceAddress = source;
-		if (destination) destinationAddress = destination;
-		if (miles && km) {
-			result = {
-				miles: parseFloat(miles),
-				km: parseFloat(km)
-			};
+			// Only use validated addresses
+			if (source && isValidAddress(source)) {
+				sourceAddress = source;
+			}
+			if (destination && isValidAddress(destination)) {
+				destinationAddress = destination;
+			}
+			if (miles && km) {
+				result = { miles, km };
+			}
+
+			// Clean URL after loading data
+			if (urlParams.has('source') || urlParams.has('destination')) {
+				window.history.replaceState({}, '', '/');
+			}
+		} catch (err) {
+			console.warn('Failed to parse URL parameters:', err);
+			// Silently continue with default values
 		}
+	});
 
-		// Clean URL after loading data
-		if (urlParams.has('source') || urlParams.has('destination')) {
-			window.history.replaceState({}, '', '/');
+	// Cleanup function to prevent memory leaks
+	onDestroy(() => {
+		if (errorTimeoutId) {
+			clearTimeout(errorTimeoutId);
 		}
 	});
 
@@ -44,27 +62,54 @@
 		try {
 			const response = await calculateDistance(sourceAddress, destinationAddress);
 
-			// Convert API response to our display format
+			// Convert API response to our display format using utility function
 			const distanceKm = response.distance_km || 0;
-			const distanceMiles = distanceKm * 0.621371; // Convert km to miles
-
-			result = {
-				miles: parseFloat(distanceMiles.toFixed(2)),
-				km: parseFloat(distanceKm.toFixed(2))
-			};
+			result = formatDistance(distanceKm);
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to calculate distance';
+			const errorMsg = formatErrorMessage(err, 'Failed to calculate distance');
+			error = errorMsg;
+			errorType = getErrorType(errorMsg);
+
+			// Auto-dismiss error after 8 seconds to prevent memory leaks
+			if (errorTimeoutId) {
+				clearTimeout(errorTimeoutId);
+			}
+			errorTimeoutId = setTimeout(() => {
+				error = null;
+				errorType = 'general';
+				errorTimeoutId = null;
+			}, 8000);
 		} finally {
 			isLoading = false;
 		}
 	}
 
 	function dismissError() {
+		// Clear timeout when manually dismissing
+		if (errorTimeoutId) {
+			clearTimeout(errorTimeoutId);
+			errorTimeoutId = null;
+		}
 		error = null;
+		errorType = 'general';
 	}
 
 	function goToHistory() {
 		goto('/history');
+	}
+
+	function clearForm() {
+		sourceAddress = '';
+		destinationAddress = '';
+		result = null;
+		error = null;
+		errorType = 'general';
+
+		// Clear any error timeout
+		if (errorTimeoutId) {
+			clearTimeout(errorTimeoutId);
+			errorTimeoutId = null;
+		}
 	}
 </script>
 
@@ -185,8 +230,26 @@
 				</div>
 			</div>
 
-			<!-- Calculate Button -->
-			<div class="mt-6">
+			<!-- Action Buttons -->
+			<div class="mt-6 flex flex-col gap-4 sm:flex-row">
+				<!-- Clear Button -->
+				<button
+					onclick={clearForm}
+					class="bg-secondary hover:bg-opacity-90 flex cursor-pointer items-center gap-2 rounded-md px-6 py-3 text-white transition-colors"
+					aria-label="Clear form and reset fields"
+				>
+					<svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H8a1 1 0 00-1 1v3M4 7h16"
+						></path>
+					</svg>
+					Clear
+				</button>
+
+				<!-- Calculate Button -->
 				<button
 					onclick={handleCalculateDistance}
 					disabled={isButtonDisabled}
@@ -217,11 +280,18 @@
 <!-- Error Notification -->
 {#if error}
 	<div
-		class="fixed right-4 bottom-4 flex max-w-sm items-start gap-3 rounded-md bg-red-500 p-4 text-white shadow-lg"
+		class="bg-primary fixed right-4 bottom-4 flex max-w-sm items-start gap-3 rounded-md border border-red-600 p-4 text-white shadow-xl"
+		role="alert"
+		aria-live="polite"
 	>
 		<div class="flex-shrink-0">
 			<div class="flex h-6 w-6 items-center justify-center rounded-full bg-white">
-				<svg class="h-4 w-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+				<svg
+					class="text-primary h-4 w-4"
+					fill="currentColor"
+					viewBox="0 0 20 20"
+					aria-hidden="true"
+				>
 					<path
 						fill-rule="evenodd"
 						d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
@@ -231,7 +301,19 @@
 			</div>
 		</div>
 		<div class="flex-1">
-			<div class="font-semibold">Calculation failed</div>
+			<div class="font-semibold">
+				{#if errorType === 'network'}
+					Connection Error
+				{:else if errorType === 'timeout'}
+					Request Timeout
+				{:else if errorType === 'validation'}
+					Invalid Address
+				{:else if errorType === 'server'}
+					Server Error
+				{:else}
+					Calculation Failed
+				{/if}
+			</div>
 			<div class="text-sm opacity-90">{error}</div>
 		</div>
 		<button

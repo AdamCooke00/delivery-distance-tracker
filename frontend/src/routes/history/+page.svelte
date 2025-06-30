@@ -2,10 +2,13 @@
 	import { goto } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { getHistory, type HistoryItem } from '$lib/services/api';
+	import { kmToMiles, formatErrorMessage } from '$lib/utils/units';
+	import { createSafeUrlParams } from '$lib/utils/url';
 
 	// State management
 	let historyData: HistoryItem[] = $state([]);
 	let isLoading = $state(true);
+	let isLoadingMore = $state(false);
 	let error = $state<string | null>(null);
 	let hasMore = $state(false);
 	let currentOffset = $state(0);
@@ -20,6 +23,8 @@
 		if (offset === 0) {
 			isLoading = true;
 			historyData = [];
+		} else {
+			isLoadingMore = true;
 		}
 		error = null;
 
@@ -40,9 +45,10 @@
 			hasMore = response.has_more;
 			currentOffset = offset + response.items.length;
 		} catch (err) {
-			error = err instanceof Error ? err.message : 'Failed to load history';
+			error = formatErrorMessage(err, 'Failed to load history');
 		} finally {
 			isLoading = false;
+			isLoadingMore = false;
 		}
 	}
 
@@ -61,9 +67,9 @@
 	function selectHistoryItem(item: HistoryItem) {
 		// Navigate to calculator with data in URL params
 		const distanceKm = item.distance_km || 0;
-		const distanceMiles = distanceKm * 0.621371; // Convert km to miles
+		const distanceMiles = kmToMiles(distanceKm);
 
-		const params = new URLSearchParams({
+		const params = createSafeUrlParams({
 			source: item.source_address,
 			destination: item.destination_address,
 			miles: distanceMiles.toFixed(2),
@@ -182,7 +188,7 @@
 										{item.destination_address}
 									</td>
 									<td class="text-text px-6 py-4 text-sm font-medium">
-										{item.distance_km ? (item.distance_km * 0.621371).toFixed(2) : 'N/A'} mi
+										{item.distance_km ? kmToMiles(item.distance_km) : 'N/A'} mi
 									</td>
 									<td class="text-text px-6 py-4 text-sm font-medium">
 										{item.distance_km ? item.distance_km.toFixed(2) : 'N/A'} km
@@ -201,10 +207,29 @@
 					<div class="border-t border-gray-200 px-6 py-4 text-center">
 						<button
 							onclick={loadMore}
-							disabled={isLoading}
-							class="bg-secondary hover:bg-opacity-90 rounded-md px-4 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+							disabled={isLoadingMore}
+							class="bg-secondary hover:bg-opacity-90 flex min-w-[120px] items-center justify-center gap-2 rounded-md px-4 py-2 text-white transition-colors disabled:cursor-not-allowed disabled:opacity-50"
 						>
-							{isLoading ? 'Loading...' : 'Load More'}
+							{#if isLoadingMore}
+								<svg class="h-4 w-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+									<circle
+										class="opacity-25"
+										cx="12"
+										cy="12"
+										r="10"
+										stroke="currentColor"
+										stroke-width="4"
+									></circle>
+									<path
+										class="opacity-75"
+										fill="currentColor"
+										d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+									></path>
+								</svg>
+								Loading...
+							{:else}
+								Load More
+							{/if}
 						</button>
 					</div>
 				{/if}

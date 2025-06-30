@@ -219,4 +219,25 @@ describe('Component Logic Tests', () => {
 			await expect(mockCalculateWithError(false)).resolves.toEqual({ miles: 29.54, km: 47.54 });
 		});
 	});
+
+	describe('Clear Form Logic', () => {
+		it('should clear all form fields to empty state', () => {
+			// Simulate the clear form function
+			const clearForm = () => ({
+				sourceAddress: '',
+				destinationAddress: '',
+				result: null,
+				error: null,
+				errorType: 'general'
+			});
+
+			const clearedState = clearForm();
+
+			expect(clearedState.sourceAddress).toBe('');
+			expect(clearedState.destinationAddress).toBe('');
+			expect(clearedState.result).toBeNull();
+			expect(clearedState.error).toBeNull();
+			expect(clearedState.errorType).toBe('general');
+		});
+	});
 });

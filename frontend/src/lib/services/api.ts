@@ -3,7 +3,9 @@
  * Provides methods for distance calculation and history retrieval
  */
 
-const API_BASE_URL = 'http://localhost:8000/api/v1';
+import { REQUEST_TIMEOUTS, formatErrorMessage } from '../utils/units';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
 
 // API Response Types (matching backend schemas)
 interface DistanceQueryResponse {
@@ -47,22 +49,39 @@ class ApiService {
 	private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
 		const url = `${API_BASE_URL}${endpoint}`;
 
-		const response = await fetch(url, {
-			headers: {
-				'Content-Type': 'application/json',
-				...options.headers
-			},
-			...options
-		});
+		// Create AbortController for request timeout
+		const controller = new AbortController();
+		const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUTS.API_REQUEST);
 
-		if (!response.ok) {
-			const errorData: ApiError = await response.json().catch(() => ({
-				error: `HTTP ${response.status}: ${response.statusText}`
-			}));
-			throw new Error(errorData.error || errorData.detail || 'Unknown API error');
+		try {
+			const response = await fetch(url, {
+				headers: {
+					'Content-Type': 'application/json',
+					...options.headers
+				},
+				signal: controller.signal,
+				...options
+			});
+
+			clearTimeout(timeoutId);
+
+			if (!response.ok) {
+				const errorData: ApiError = await response.json().catch(() => ({
+					error: `HTTP ${response.status}: ${response.statusText}`
+				}));
+				throw new Error(errorData.error || errorData.detail || 'Unknown API error');
+			}
+
+			return response.json();
+		} catch (error) {
+			clearTimeout(timeoutId);
+
+			if (error instanceof Error && error.name === 'AbortError') {
+				throw new Error('Request timeout - please try again');
+			}
+
+			throw new Error(formatErrorMessage(error, 'API request failed'));
 		}
-
-		return response.json();
 	}
 
 	// Distance calculation API

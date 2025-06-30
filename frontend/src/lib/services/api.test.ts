@@ -42,6 +42,7 @@ describe('API Service', () => {
 				headers: {
 					'Content-Type': 'application/json'
 				},
+				signal: expect.any(AbortSignal),
 				body: JSON.stringify({
 					source_address: 'New York, NY',
 					destination_address: 'Los Angeles, CA'
@@ -77,6 +78,16 @@ describe('API Service', () => {
 			);
 		});
 
+		it('should handle request timeout', async () => {
+			const abortError = new Error('Request timeout');
+			abortError.name = 'AbortError';
+			mockFetch.mockRejectedValueOnce(abortError);
+
+			await expect(calculateDistance('New York, NY', 'Los Angeles, CA')).rejects.toThrow(
+				'Request timeout - please try again'
+			);
+		});
+
 		it('should handle malformed error responses', async () => {
 			mockFetch.mockResolvedValueOnce({
 				ok: false,
@@ -88,7 +99,7 @@ describe('API Service', () => {
 			});
 
 			await expect(calculateDistance('New York, NY', 'Los Angeles, CA')).rejects.toThrow(
-				'HTTP 500: Internal Server Error'
+				'Server error. Please try again in a few moments.'
 			);
 		});
 	});
@@ -125,7 +136,8 @@ describe('API Service', () => {
 			expect(mockFetch).toHaveBeenCalledWith('http://localhost:8000/api/v1/history', {
 				headers: {
 					'Content-Type': 'application/json'
-				}
+				},
+				signal: expect.any(AbortSignal)
 			});
 
 			expect(result).toEqual(mockResponse);
@@ -160,7 +172,8 @@ describe('API Service', () => {
 				{
 					headers: {
 						'Content-Type': 'application/json'
-					}
+					},
+					signal: expect.any(AbortSignal)
 				}
 			);
 
@@ -196,7 +209,8 @@ describe('API Service', () => {
 				{
 					headers: {
 						'Content-Type': 'application/json'
-					}
+					},
+					signal: expect.any(AbortSignal)
 				}
 			);
 		});

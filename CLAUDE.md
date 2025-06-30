@@ -32,7 +32,13 @@ main (production) → develop (integration) → feature/sprint-XX-name
 ## 🚀 Sprint Workflow
 - **Total**: 8 sprints (Foundation → Database → API → Geocoding → Distance → History → Frontend → Deployment)
 - **Process**: Complete acceptance criteria → pass 5 test cases → implement → commit
-- **Current Sprint**: [Track here]
+
+### Sprint Completion Process
+- **IMPORTANT**: Only update sprint checkboxes at the very end of sprint completion
+- Review entire sprint file to verify all acceptance criteria were met
+- Check boxes for completed items and add notes for any deviations or differences
+- Add completion summary with date and key deliverables at end of sprint file
+- Create feature branch, commit with conventional format, merge to develop
 
 ## 📁 Key File Navigation
 

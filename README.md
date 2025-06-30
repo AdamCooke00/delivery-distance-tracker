@@ -160,6 +160,13 @@ pytest app/tests/test_distance_geocoding_errors.py -v
 pytest app/tests/test_distance_database.py -v
 pytest app/tests/test_distance_e2e.py -v
 
+# Run history endpoint tests (Sprint 6)
+pytest app/tests/test_history_endpoint.py -v
+pytest app/tests/test_history_filtering.py -v
+pytest app/tests/test_history_sorting.py -v
+pytest app/tests/test_history_validation.py -v
+pytest app/tests/test_history_performance.py -v
+
 # Run end-to-end tests with real APIs (optional)
 SKIP_E2E_TESTS=false pytest app/tests/test_distance_e2e.py -v
 
@@ -222,7 +229,7 @@ git push -u origin feature/your-feature-name
 
 ## 🎯 API Endpoints
 
-### Current Endpoints (Sprints 1-5)
+### Current Endpoints (Sprints 1-6)
 
 - `GET /` - Root endpoint with API information
 - `GET /api/v1/health` - Comprehensive health check
@@ -280,6 +287,68 @@ curl -X POST "http://localhost:8000/api/v1/distance" \
      }'
 ```
 
+### Query History Endpoint (Sprint 6)
+
+#### `GET /api/v1/history` - Retrieve Past Distance Queries
+
+Retrieve paginated history of distance calculations with filtering, searching, and sorting capabilities.
+
+**Query Parameters:**
+- `limit` (int, default: 10): Number of items to return (1-100)
+- `offset` (int, default: 0): Number of items to skip for pagination
+- `start_date` (datetime): Filter results from this date (ISO format)
+- `end_date` (datetime): Filter results up to this date (ISO format)
+- `search` (string): Search term for filtering by addresses
+- `sort_by` (string, default: "created_at"): Field to sort by
+  - Options: `created_at`, `distance_km`, `source_address`, `destination_address`
+- `sort_order` (string, default: "desc"): Sort order (`asc` or `desc`)
+
+**Response (200 OK):**
+```json
+{
+  "items": [
+    {
+      "id": 123,
+      "source_address": "1600 Amphitheatre Parkway, Mountain View, CA",
+      "destination_address": "1 Apple Park Way, Cupertino, CA",
+      "source_lat": 37.4224764,
+      "source_lng": -122.0842499,
+      "destination_lat": 37.3349,
+      "destination_lng": -122.009,
+      "distance_km": 11.2,
+      "created_at": "2025-06-30T10:30:45.123456"
+    }
+  ],
+  "total": 156,
+  "limit": 10,
+  "offset": 0,
+  "has_more": true
+}
+```
+
+**Example Requests:**
+
+```bash
+# Basic pagination
+curl "http://localhost:8000/api/v1/history?limit=20&offset=40"
+
+# Filter by date range
+curl "http://localhost:8000/api/v1/history?start_date=2025-06-01&end_date=2025-06-30"
+
+# Search in addresses
+curl "http://localhost:8000/api/v1/history?search=New%20York"
+
+# Sort by distance (largest first)
+curl "http://localhost:8000/api/v1/history?sort_by=distance_km&sort_order=desc"
+
+# Combined filters
+curl "http://localhost:8000/api/v1/history?search=California&limit=5&sort_by=created_at&sort_order=asc"
+```
+
+**Error Responses:**
+- `422 Unprocessable Entity` - Invalid query parameters (negative limit/offset, invalid date format, etc.)
+- `500 Internal Server Error` - Database error
+
 ### Geocoding & Distance Services (Sprint 4)
 
 The application includes comprehensive geocoding and distance calculation capabilities:
@@ -291,7 +360,8 @@ The application includes comprehensive geocoding and distance calculation capabi
 
 ### Future Endpoints (Coming in Next Sprints)
 
-- `GET /api/v1/history` - Retrieve past queries (paginated) (Sprint 6)
+- Frontend application with interactive UI (Sprint 7)
+- Deployment and production configuration (Sprint 8)
 
 ## 🔧 Development Commands
 
@@ -362,4 +432,4 @@ CREATE INDEX idx_distance_queries_addresses ON distance_queries(source_address, 
 
 ## 📝 License
 
-This project is part of the Bain assessment and is for educational purposes.
+This project is for educational purposes.

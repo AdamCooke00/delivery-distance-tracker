@@ -1,7 +1,7 @@
 # Claude Memory - Delivery Distance Tracker
 
 ## 🎯 Project Context
-- **Type**: Delivery Distance Tracker (Bain Assessment)
+- **Type**: Delivery Distance Tracker
 - **Stack**: FastAPI + SvelteKit + PostgreSQL + Docker
 - **Architecture**: Monolithic MVP with 8-sprint development approach
 

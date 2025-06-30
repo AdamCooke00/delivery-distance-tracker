@@ -27,9 +27,9 @@ def test_404_error_handling():
 
 def test_validation_error_handling():
     """Test request validation error handling."""
-    # Test with invalid JSON payload
+    # Test with invalid JSON payload - should return validation error now that endpoint exists
     response = client.post("/api/v1/distance", json={"invalid": "data"})
-    assert response.status_code == 404  # Endpoint doesn't exist yet
+    assert response.status_code == 422  # Validation error for missing required fields
 
     # Test with malformed JSON
     response = client.post(
@@ -37,7 +37,7 @@ def test_validation_error_handling():
         data="invalid json",
         headers={"content-type": "application/json"},
     )
-    assert response.status_code in [404, 422]  # 404 until endpoint exists, 422 after
+    assert response.status_code == 422  # JSON parsing error now that endpoint exists
     print("✅ Validation error handling works")
 
 

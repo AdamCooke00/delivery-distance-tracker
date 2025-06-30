@@ -21,33 +21,29 @@ class Config:
     def _get_cors_origins(self) -> List[str]:
         """
         Get CORS allowed origins from environment variable.
-        
+
         Returns:
             List[str]: List of allowed origins for CORS
         """
         cors_origins_env = os.getenv(
-            "CORS_ORIGINS", 
-            "http://localhost:3000,http://127.0.0.1:3000"
+            "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000"
         )
         return [origin.strip() for origin in cors_origins_env.split(",")]
 
     def _get_nominatim_base_url(self) -> str:
         """
         Get Nominatim base URL from environment variable.
-        
+
         Returns:
             str: Base URL for Nominatim API
         """
-        return os.getenv(
-            "NOMINATIM_BASE_URL", 
-            "https://nominatim.openstreetmap.org"
-        )
+        return os.getenv("NOMINATIM_BASE_URL", "https://nominatim.openstreetmap.org")
 
     @property
     def nominatim_search_url(self) -> str:
         """
         Get the full Nominatim search endpoint URL.
-        
+
         Returns:
             str: Full URL for Nominatim search endpoint
         """

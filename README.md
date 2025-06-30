@@ -153,6 +153,16 @@ pytest app/tests/test_geocoding_service.py -v
 pytest app/tests/test_geocoding_reliability.py -v
 pytest app/tests/test_geocoding_integration.py -v
 
+# Run distance endpoint tests (Sprint 5)
+pytest app/tests/test_distance_endpoint.py -v
+pytest app/tests/test_distance_validation.py -v
+pytest app/tests/test_distance_geocoding_errors.py -v
+pytest app/tests/test_distance_database.py -v
+pytest app/tests/test_distance_e2e.py -v
+
+# Run end-to-end tests with real APIs (optional)
+SKIP_E2E_TESTS=false pytest app/tests/test_distance_e2e.py -v
+
 # Run tests with coverage
 pytest --cov=app --cov-report=html
 
@@ -212,7 +222,7 @@ git push -u origin feature/your-feature-name
 
 ## 🎯 API Endpoints
 
-### Current Endpoints (Sprints 1-4)
+### Current Endpoints (Sprints 1-5)
 
 - `GET /` - Root endpoint with API information
 - `GET /api/v1/health` - Comprehensive health check
@@ -222,6 +232,53 @@ git push -u origin feature/your-feature-name
 - `GET /docs` - Interactive OpenAPI documentation (Swagger UI)
 - `GET /redoc` - ReDoc API documentation
 - `GET /openapi.json` - OpenAPI schema
+
+### Distance Calculation Endpoint (Sprint 5)
+
+#### `POST /api/v1/distance` - Calculate Distance Between Addresses
+
+Calculate the distance between two addresses using geocoding and the Haversine formula.
+
+**Request Body:**
+```json
+{
+  "source_address": "1600 Amphitheatre Parkway, Mountain View, CA",
+  "destination_address": "1 Apple Park Way, Cupertino, CA"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "id": 123,
+  "source_address": "1600 Amphitheatre Parkway, Mountain View, CA",
+  "destination_address": "1 Apple Park Way, Cupertino, CA",
+  "source_lat": 37.4224764,
+  "source_lng": -122.0842499,
+  "destination_lat": 37.3349,
+  "destination_lng": -122.009,
+  "source_coords": [37.4224764, -122.0842499],
+  "destination_coords": [37.3349, -122.009],
+  "distance_km": 11.2,
+  "created_at": "2025-06-30T10:30:45.123456"
+}
+```
+
+**Error Responses:**
+- `400 Bad Request` - Address not found during geocoding
+- `422 Unprocessable Entity` - Invalid request format or validation error
+- `503 Service Unavailable` - Geocoding service unavailable
+- `500 Internal Server Error` - Database or internal system error
+
+**Example with curl:**
+```bash
+curl -X POST "http://localhost:8000/api/v1/distance" \
+     -H "Content-Type: application/json" \
+     -d '{
+       "source_address": "Empire State Building, New York, NY",
+       "destination_address": "Statue of Liberty, New York, NY"
+     }'
+```
 
 ### Geocoding & Distance Services (Sprint 4)
 
@@ -234,7 +291,6 @@ The application includes comprehensive geocoding and distance calculation capabi
 
 ### Future Endpoints (Coming in Next Sprints)
 
-- `POST /api/v1/distance` - Calculate distance between addresses (Sprint 5)
 - `GET /api/v1/history` - Retrieve past queries (paginated) (Sprint 6)
 
 ## 🔧 Development Commands

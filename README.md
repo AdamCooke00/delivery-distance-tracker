@@ -73,6 +73,7 @@ cp .env.example .env
 # POSTGRES_PASSWORD=delivery_password
 # POSTGRES_DB=delivery_tracker
 # NOMINATIM_BASE_URL=https://nominatim.openstreetmap.org
+# CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 # LOG_LEVEL=INFO
 ```
 
@@ -138,6 +139,13 @@ pytest app/tests/ -v
 # Run database tests specifically
 pytest app/tests/test_database_*.py -v
 
+# Run FastAPI application tests
+pytest app/tests/test_application.py -v
+pytest app/tests/test_health.py -v
+pytest app/tests/test_error_handling.py -v
+pytest app/tests/test_cors.py -v
+pytest app/tests/test_logging.py -v
+
 # Run tests with coverage
 pytest --cov=app --cov-report=html
 
@@ -195,11 +203,23 @@ git push -u origin feature/your-feature-name
 └── pytest.ini            # pytest configuration
 ```
 
-## 🎯 API Endpoints (Future)
+## 🎯 API Endpoints
 
-- `POST /distance` - Calculate distance between addresses
-- `GET /history` - Retrieve past queries (paginated)
-- `GET /health` - System health check
+### Current Endpoints (Sprint 3)
+
+- `GET /` - Root endpoint with API information
+- `GET /api/v1/health` - Comprehensive health check
+  - Returns system status, database connectivity, and external API status
+- `GET /api/v1/health/database` - Database-specific health check
+- `GET /api/v1/health/nominatim` - Nominatim API-specific health check
+- `GET /docs` - Interactive OpenAPI documentation (Swagger UI)
+- `GET /redoc` - ReDoc API documentation
+- `GET /openapi.json` - OpenAPI schema
+
+### Future Endpoints (Coming in Next Sprints)
+
+- `POST /api/v1/distance` - Calculate distance between addresses
+- `GET /api/v1/history` - Retrieve past queries (paginated)
 
 ## 🔧 Development Commands
 
@@ -214,9 +234,15 @@ cp .env.example .env
 cd docker && docker-compose up -d postgres && cd ..
 python3 -c "from app.utils.database import initialize_database; print(initialize_database())"
 
-# Start backend development server (when implemented)
+# Start FastAPI backend development server
 source venv/bin/activate
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Access the API
+# - API Root: http://localhost:8000/
+# - Health Check: http://localhost:8000/api/v1/health
+# - API Documentation: http://localhost:8000/docs
+# - ReDoc Documentation: http://localhost:8000/redoc
 
 # Start frontend development server (when implemented)
 cd frontend

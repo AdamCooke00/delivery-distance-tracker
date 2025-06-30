@@ -1,4 +1,37 @@
-"""Database utility functions and connection management."""
+"""
+Database utilities and helper functions for the Delivery Distance Tracker.
+
+This module provides comprehensive database management functionality including:
+- Database health monitoring and connectivity testing
+- CRUD operations for distance queries with error handling
+- Database initialization and schema management
+- Connection pooling and session management utilities
+- Performance monitoring for database operations
+- Robust error handling for database failures
+
+Key Functions:
+- check_database_health(): Tests database connectivity and returns health status
+- test_database_operations(): Performs comprehensive CRUD operation testing
+- create_distance_query(): Creates new distance query records with validation
+- get_distance_queries(): Retrieves paginated distance query history
+- initialize_database(): Sets up database schema and tables
+
+Usage Example:
+    # Check database health
+    is_healthy, message = check_database_health()
+
+    # Create a distance query
+    query_data = DistanceQueryCreate(
+        source_address="123 Main St",
+        destination_address="456 Oak Ave"
+    )
+    result = create_distance_query(query_data)
+
+Connection Management:
+    This module uses SQLAlchemy with connection pooling configured in database.py.
+    Sessions are managed through SessionLocal() factory with proper cleanup.
+    All operations include comprehensive error handling and logging.
+"""
 
 import time
 from typing import Tuple, Optional
@@ -10,10 +43,34 @@ from app.models.database import engine, SessionLocal, Base
 
 def check_database_health() -> Tuple[bool, str]:
     """
-    Check database health and connectivity.
+    Check database health and connectivity with comprehensive testing.
+
+    Performs multiple health checks to ensure database availability:
+    1. Basic connectivity test with SELECT 1 query
+    2. Database existence verification
+    3. Response time measurement for performance monitoring
+    4. Connection pool health assessment
+
+    The function uses the configured SQLAlchemy engine to test connectivity
+    and measures response time to help identify performance issues.
 
     Returns:
-        Tuple[bool, str]: (is_healthy, status_message)
+        Tuple[bool, str]: A tuple containing:
+            - bool: True if database is healthy, False otherwise
+            - str: Detailed status message including response time and database name
+                  Format: "Database healthy: {db_name} ({response_time}ms)"
+                  On error: "Database error: {error_description}"
+
+    Raises:
+        No exceptions are raised - all errors are caught and returned in the status message.
+
+    Example:
+        >>> is_healthy, message = check_database_health()
+        >>> if is_healthy:
+        ...     print(f"✅ {message}")
+        ... else:
+        ...     print(f"❌ {message}")
+        ✅ Database healthy: delivery_tracker (45.23ms)
     """
     try:
         start_time = time.time()

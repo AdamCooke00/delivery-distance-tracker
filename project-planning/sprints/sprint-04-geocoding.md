@@ -1,5 +1,9 @@
 # Sprint 4: Geocoding Service Integration
 
+> **📊 SPRINT STATUS: 🔄 PENDING** (Requires Sprint 2 + 3 completion)  
+> **📚 COMPLETION TEMPLATE: Added below - use Sprint Completion Checklist when ready**  
+> **🔗 DEPENDENCIES: Sprint 2 (Database) + Sprint 3 (FastAPI) must be complete**
+
 ## 🎯 Objective
 Implement Nominatim API integration for address geocoding with comprehensive error handling, address validation, and robust testing including API mocking.
 
@@ -406,5 +410,76 @@ async def test_real_nominatim_api():
 - Error handling gracefully manages all failure scenarios
 - Feature branch is ready for merge to develop
 
+## 📋 Sprint Completion Checklist
+
+**Before marking sprint complete, verify:**
+- [ ] All acceptance criteria checkboxes are marked ✅
+- [ ] All 5 test cases pass without errors  
+- [ ] All quality gates are met and marked ✅
+- [ ] All security requirements are met and marked ✅
+- [ ] Code passes Black formatting and Flake8 linting
+- [ ] Test coverage >= 80%
+- [ ] All files created/modified are documented in completion summary
+- [ ] Completion summary added with date and key deliverables
+- [ ] Feature branch committed with conventional format
+- [ ] Ready for merge to develop
+
 ## 🔄 Next Sprint Preview
 Sprint 5 will implement the POST /distance endpoint using the geocoding service, add database storage for queries, and create comprehensive endpoint testing with various scenarios.
+
+---
+
+## ✅ SPRINT 4 COMPLETION SUMMARY
+
+**Completed On:** [DATE]  
+**Status:** [ ] COMPLETE - All acceptance criteria and quality gates met
+
+### Key Deliverables Achieved:
+- [ ] **Nominatim API Client**: [Description]
+- [ ] **Address Validation**: [Description]
+- [ ] **Distance Calculation**: [Description]
+- [ ] **Geocoding Testing**: [Description]
+
+### Files Created/Modified:
+**New Files Created ([X] files):**
+- [ ] `app/services/geocoding.py` - [Description of purpose and functionality]
+- [ ] `app/utils/validation.py` - [Description of purpose and functionality]
+- [ ] `app/utils/distance.py` - [Description of purpose and functionality]
+- [ ] `app/tests/test_geocoding.py` - [Description of test coverage]
+
+**Files Modified ([X] files):**
+- [ ] `requirements.txt` - [Add httpx and other dependencies]
+- [ ] `README.md` - [Update with geocoding setup instructions]
+
+### Test Results Summary:
+- [ ] **[X]/[X] tests passing** across all test categories
+- [ ] **Geocoding Tests** ([X] tests) - API client, validation, error handling
+- [ ] **Distance Tests** ([X] tests) - Haversine formula, edge cases
+- [ ] **Integration Tests** ([X] tests) - End-to-end geocoding workflow
+
+### Quality Gates Achieved:
+- [ ] All 5 Sprint 4 test cases pass without errors
+- [ ] Geocoding service handles valid addresses successfully
+- [ ] Invalid addresses properly rejected and sanitized
+- [ ] Distance calculations mathematically accurate
+- [ ] Caching reduces redundant API calls
+- [ ] Error handling gracefully manages all failure scenarios
+
+### Code Implementation Details:
+- [ ] **API Client**: Async HTTP client with proper headers and rate limiting
+- [ ] **Validation**: Address format validation and sanitization
+- [ ] **Distance Calculation**: Haversine formula implementation with unit tests
+- [ ] **Error Handling**: Comprehensive exception handling for API failures
+- [ ] **Caching**: In-memory caching for geocoding results
+
+### Security Compliance:
+- [ ] No API keys hardcoded (use environment variables if needed)
+- [ ] Input validation prevents injection attacks
+- [ ] Rate limiting prevents API abuse
+- [ ] Error messages don't expose internal details
+
+### Notes:
+- [Any deviations, decisions, or important implementation notes]
+
+### Ready for Next Sprint:
+Sprint 4 provides complete geocoding foundation for Sprint 5 distance endpoint implementation.

@@ -23,8 +23,8 @@ This application allows users to:
 
 - Python 3.8 or higher
 - Git
+- Docker & Docker Compose
 - Node.js 16+ (for frontend development)
-- Docker & Docker Compose (for full setup)
 
 ## 🚀 Quick Start
 
@@ -49,19 +49,55 @@ pip install -r requirements.txt
 pip install -r requirements-dev.txt
 ```
 
-### 3. Configure Environment Variables
+### 3. Set Up Database with Docker
+
+```bash
+# Start PostgreSQL database
+cd docker
+docker-compose up -d postgres
+
+# Verify database is running
+docker-compose ps
+docker-compose logs postgres | grep "database system is ready"
+```
+
+### 4. Configure Environment Variables
 
 ```bash
 # Copy environment template
 cp .env.example .env
 
 # Edit .env file with your configuration
-# DATABASE_URL=postgresql://user:password@localhost:5432/delivery_tracker
+# DATABASE_URL=postgresql://delivery_user:delivery_password@localhost:5432/delivery_tracker
+# POSTGRES_USER=delivery_user
+# POSTGRES_PASSWORD=delivery_password
+# POSTGRES_DB=delivery_tracker
 # NOMINATIM_BASE_URL=https://nominatim.openstreetmap.org
 # LOG_LEVEL=INFO
 ```
 
-### 4. Verify Installation
+### 5. Initialize Database Schema
+
+```bash
+# Activate virtual environment
+source venv/bin/activate
+
+# Initialize database tables
+python3 -c "
+from app.utils.database import initialize_database
+success, message = initialize_database()
+print(f'Database initialization: {message}')
+"
+
+# Verify database health
+python3 -c "
+from app.utils.database import check_database_health
+healthy, message = check_database_health()
+print(f'Database health: {message}')
+"
+```
+
+### 6. Verify Installation
 
 ```bash
 # Check Python environment
@@ -76,6 +112,39 @@ flake8 .
 
 ## 🧪 Development Workflow
 
+### Database Operations
+
+```bash
+# Start database
+cd docker && docker-compose up -d postgres
+
+# Stop database
+cd docker && docker-compose down
+
+# View database logs
+cd docker && docker-compose logs postgres
+
+# Reset database (removes all data)
+cd docker && docker-compose down -v && docker-compose up -d postgres
+```
+
+### Testing
+
+```bash
+# Run all tests
+source venv/bin/activate
+pytest app/tests/ -v
+
+# Run database tests specifically
+pytest app/tests/test_database_*.py -v
+
+# Run tests with coverage
+pytest --cov=app --cov-report=html
+
+# Run specific test file
+pytest app/tests/test_environment.py -v
+```
+
 ### Code Quality Tools
 
 ```bash
@@ -85,11 +154,8 @@ black .
 # Lint with Flake8
 flake8 .
 
-# Run tests with coverage
-pytest
-
-# Run specific test file
-pytest app/tests/test_environment.py -v
+# Check code quality (run before commits)
+black --check . && flake8 .
 ```
 
 ### Git Workflow
@@ -138,6 +204,16 @@ git push -u origin feature/your-feature-name
 ## 🔧 Development Commands
 
 ```bash
+# Complete setup from scratch
+git clone https://github.com/AdamCooke00/delivery-distance-tracker.git
+cd delivery-distance-tracker
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt requirements-dev.txt
+cp .env.example .env
+cd docker && docker-compose up -d postgres && cd ..
+python3 -c "from app.utils.database import initialize_database; print(initialize_database())"
+
 # Start backend development server (when implemented)
 source venv/bin/activate
 uvicorn app.main:app --reload
@@ -146,11 +222,30 @@ uvicorn app.main:app --reload
 cd frontend
 npm run dev
 
-# Run full test suite
-pytest app/tests/
+# Database health check
+python3 -c "from app.utils.database import check_database_health; print(check_database_health())"
+```
 
-# Check code coverage
-pytest --cov=app --cov-report=html
+## 🗄️ Database Schema
+
+The application uses PostgreSQL with the following main table:
+
+```sql
+CREATE TABLE distance_queries (
+    id SERIAL PRIMARY KEY,
+    source_address VARCHAR(255) NOT NULL,
+    destination_address VARCHAR(255) NOT NULL,
+    source_lat DECIMAL(10, 8),
+    source_lng DECIMAL(11, 8), 
+    destination_lat DECIMAL(10, 8),
+    destination_lng DECIMAL(11, 8),
+    distance_km DECIMAL(10, 3),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Performance indexes
+CREATE INDEX idx_distance_queries_created_at ON distance_queries(created_at);
+CREATE INDEX idx_distance_queries_addresses ON distance_queries(source_address, destination_address);
 ```
 
 ## 🤝 Contributing

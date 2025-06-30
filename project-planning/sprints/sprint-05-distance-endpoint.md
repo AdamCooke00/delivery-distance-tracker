@@ -1,5 +1,9 @@
 # Sprint 5: Distance Calculation & Storage
 
+> **📊 SPRINT STATUS: 🔄 PENDING** (Requires Sprint 2 + 3 + 4 completion)  
+> **📚 COMPLETION TEMPLATE: Added below - use Sprint Completion Checklist when ready**  
+> **🔗 DEPENDENCIES: Sprint 2 (Database) + Sprint 3 (FastAPI) + Sprint 4 (Geocoding) must be complete**
+
 ## 🎯 Objective
 Implement the POST /distance endpoint that geocodes addresses, calculates distances, stores queries in the database, and returns structured responses with comprehensive error handling.
 

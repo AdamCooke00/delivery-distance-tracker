@@ -15,6 +15,7 @@ from contextlib import asynccontextmanager
 from app.api.routes import api_router
 from app.utils.logging import setup_logging, get_logger, RequestLoggingMiddleware
 from app.utils.exceptions import EXCEPTION_HANDLERS
+from app.utils.config import config
 
 
 logger = get_logger(__name__)
@@ -48,10 +49,7 @@ app = FastAPI(
 # Configure CORS for frontend integration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ],  # SvelteKit default
+    allow_origins=config.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],

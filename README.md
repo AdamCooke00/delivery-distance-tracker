@@ -73,6 +73,7 @@ cp .env.example .env
 # POSTGRES_PASSWORD=delivery_password
 # POSTGRES_DB=delivery_tracker
 # NOMINATIM_BASE_URL=https://nominatim.openstreetmap.org
+# CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
 # LOG_LEVEL=INFO
 ```
 

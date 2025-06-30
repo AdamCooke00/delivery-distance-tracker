@@ -16,6 +16,7 @@ from pydantic import BaseModel
 
 from app.utils.database import check_database_health
 from app.utils.logging import get_logger
+from app.utils.config import config
 
 logger = get_logger(__name__)
 
@@ -52,7 +53,7 @@ async def check_nominatim_api() -> ServiceCheck:
         async with httpx.AsyncClient(timeout=5.0) as client:
             # Test with a simple geocoding request
             response = await client.get(
-                "https://nominatim.openstreetmap.org/search",
+                config.nominatim_search_url,
                 params={"q": "New York City", "format": "json", "limit": 1},
             )
 

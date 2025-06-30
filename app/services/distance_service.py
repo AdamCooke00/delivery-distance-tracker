@@ -31,7 +31,7 @@ Security Features:
 
 import asyncio
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Tuple
 from decimal import Decimal
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -131,6 +131,45 @@ class DistanceService:
         """
         self.geocoding_service = geocoding_service or GeocodingService()
 
+    def _sanitize_geocoding_error(
+        self, error_msg: str, address: str, field: str
+    ) -> Tuple[str, str]:
+        """
+        Sanitize geocoding error messages to prevent information disclosure.
+
+        Args:
+            error_msg: Original error message from geocoding service
+            address: The address that failed to geocode
+            field: The field name ("source" or "destination")
+
+        Returns:
+            Tuple of (sanitized_message, error_type)
+        """
+        error_msg_lower = error_msg.lower()
+
+        # Check for service availability issues
+        if any(
+            keyword in error_msg_lower
+            for keyword in [
+                "password",
+                "postgresql://",
+                "timeout",
+                "timed out",
+                "connection",
+                "unavailable",
+                "rate limit",
+                "initialize",
+                "failed to",
+                "unexpected",
+            ]
+        ):
+            return "Geocoding service is temporarily unavailable", "service_unavailable"
+        else:
+            return (
+                f"Failed to geocode {field} address '{address}': address not found",
+                "geocoding_error",
+            )
+
     async def calculate_distance(
         self, source_address: str, destination_address: str
     ) -> DistanceCalculationResult:
@@ -214,28 +253,9 @@ class DistanceService:
             # Check source geocoding result
             if isinstance(source_result, Exception):
                 logger.error(f"Source geocoding failed: {str(source_result)}")
-                # Sanitize error message based on error type
-                error_msg = str(source_result).lower()
-                if any(
-                    keyword in error_msg
-                    for keyword in [
-                        "password",
-                        "postgresql://",
-                        "timeout",
-                        "timed out",
-                        "connection",
-                        "unavailable",
-                        "rate limit",
-                        "initialize",
-                        "failed to",
-                        "unexpected",
-                    ]
-                ):
-                    sanitized_message = "Geocoding service is temporarily unavailable"
-                    error_type = "service_unavailable"
-                else:
-                    sanitized_message = f"Failed to geocode source address '{clean_source}': address not found"
-                    error_type = "geocoding_error"
+                sanitized_message, error_type = self._sanitize_geocoding_error(
+                    str(source_result), clean_source, "source"
+                )
                 raise DistanceServiceError(
                     sanitized_message,
                     error_type=error_type,
@@ -246,28 +266,9 @@ class DistanceService:
             # Check destination geocoding result
             if isinstance(destination_result, Exception):
                 logger.error(f"Destination geocoding failed: {str(destination_result)}")
-                # Sanitize error message based on error type
-                error_msg = str(destination_result).lower()
-                if any(
-                    keyword in error_msg
-                    for keyword in [
-                        "password",
-                        "postgresql://",
-                        "timeout",
-                        "timed out",
-                        "connection",
-                        "unavailable",
-                        "rate limit",
-                        "initialize",
-                        "failed to",
-                        "unexpected",
-                    ]
-                ):
-                    sanitized_message = "Geocoding service is temporarily unavailable"
-                    error_type = "service_unavailable"
-                else:
-                    sanitized_message = f"Failed to geocode destination address '{clean_destination}': address not found"
-                    error_type = "geocoding_error"
+                sanitized_message, error_type = self._sanitize_geocoding_error(
+                    str(destination_result), clean_destination, "destination"
+                )
                 raise DistanceServiceError(
                     sanitized_message,
                     error_type=error_type,

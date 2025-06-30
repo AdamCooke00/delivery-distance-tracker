@@ -31,7 +31,7 @@ Performance:
 - Proper resource cleanup
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, AsyncGenerator
 from fastapi import APIRouter, HTTPException, Depends
 from fastapi.responses import JSONResponse
 
@@ -45,7 +45,7 @@ logger = get_logger(__name__)
 distance_router = APIRouter()
 
 
-async def get_distance_service() -> DistanceService:
+async def get_distance_service() -> AsyncGenerator[DistanceService, None]:
     """
     Dependency to provide DistanceService instance.
 

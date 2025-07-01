@@ -28,14 +28,28 @@ This application allows users to:
 
 ## 🚀 Quick Start
 
-### 1. Clone the Repository
+### Clone the Repository
 
 ```bash
 git clone https://github.com/AdamCooke00/delivery-distance-tracker.git
 cd delivery-distance-tracker
 ```
 
-### 2. Set Up Python Environment
+### Docker Quick Start (Recommended)
+
+```bash
+# Start the entire application with one command
+docker-compose up --build
+
+# Access the application:
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000
+# API Documentation: http://localhost:8000/docs
+```
+
+That's it! The complete application is now running with the database initialized.
+
+### Manual Setup (Alternative)
 
 ```bash
 # Create virtual environment
@@ -45,15 +59,14 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -r backend/requirements.txt
+pip install -r backend/requirements-dev.txt
 ```
 
-### 3. Set Up Database with Docker
+### Set Up Database with Docker
 
 ```bash
-# Start PostgreSQL database
-cd docker
+# Start PostgreSQL database only
 docker-compose up -d postgres
 
 # Verify database is running
@@ -61,13 +74,16 @@ docker-compose ps
 docker-compose logs postgres | grep "database system is ready"
 ```
 
-### 4. Configure Environment Variables
+### Configure Environment Variables
 
 ```bash
-# Copy environment template
+# Copy backend environment template
 cp .env.example .env
 
-# Edit .env file with your configuration
+# Copy frontend environment template
+cp frontend/.env.example frontend/.env
+
+# Edit .env file with your backend configuration
 # DATABASE_URL=postgresql://delivery_user:delivery_password@localhost:5432/delivery_tracker
 # POSTGRES_USER=delivery_user
 # POSTGRES_PASSWORD=delivery_password
@@ -75,9 +91,13 @@ cp .env.example .env
 # NOMINATIM_BASE_URL=https://nominatim.openstreetmap.org
 # CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173
 # LOG_LEVEL=INFO
+
+# Edit frontend/.env file with your frontend configuration
+# VITE_API_URL=http://localhost:8000/api/v1  # For development
+# VITE_API_URL=https://your-api.com/api/v1  # For production
 ```
 
-### 5. Initialize Database Schema
+### Initialize Database Schema
 
 ```bash
 # Activate virtual environment
@@ -85,6 +105,7 @@ source venv/bin/activate
 
 # Initialize database tables
 python3 -c "
+import sys; sys.path.append('backend')
 from app.utils.database import initialize_database
 success, message = initialize_database()
 print(f'Database initialization: {message}')
@@ -92,13 +113,14 @@ print(f'Database initialization: {message}')
 
 # Verify database health
 python3 -c "
+import sys; sys.path.append('backend')
 from app.utils.database import check_database_health
 healthy, message = check_database_health()
 print(f'Database health: {message}')
 "
 ```
 
-### 6. Set Up Frontend
+### Set Up Frontend
 
 ```bash
 # Install frontend dependencies
@@ -113,7 +135,7 @@ npm run lint
 cd ..
 ```
 
-### 7. Verify Installation
+### Verify Installation
 
 ```bash
 # Check Python environment
@@ -128,8 +150,7 @@ npm --version
 cd ..
 
 # Run code quality checks
-black --check .
-flake8 .
+cd backend && black --check . && flake8 . && cd ..
 ```
 
 ## 🧪 Development Workflow
@@ -138,65 +159,70 @@ flake8 .
 
 ```bash
 # Start database
-cd docker && docker-compose up -d postgres
+docker-compose up -d postgres
 
 # Stop database
-cd docker && docker-compose down
+docker-compose down
 
 # View database logs
-cd docker && docker-compose logs postgres
+docker-compose logs postgres
 
 # Reset database (removes all data)
-cd docker && docker-compose down -v && docker-compose up -d postgres
+docker-compose down -v && docker-compose up -d postgres
 ```
 
 ### Testing
 
 ```bash
-# Run all tests
+# IMPORTANT: Start the database before running tests
+docker-compose up -d postgres
+
+# Activate virtual environment (required for all test commands)
 source venv/bin/activate
-pytest app/tests/ -v
+
+# Run all tests
+cd backend && python -m pytest app/tests/ -v
 
 # Run database tests specifically
-pytest app/tests/test_database_*.py -v
+cd backend && python -m pytest app/tests/test_database_*.py -v
 
 # Run FastAPI application tests
-pytest app/tests/test_application.py -v
-pytest app/tests/test_health.py -v
-pytest app/tests/test_error_handling.py -v
-pytest app/tests/test_cors.py -v
-pytest app/tests/test_logging.py -v
+cd backend && python -m pytest app/tests/test_application.py -v
+cd backend && python -m pytest app/tests/test_health.py -v
+cd backend && python -m pytest app/tests/test_error_handling.py -v
+cd backend && python -m pytest app/tests/test_cors.py -v
+cd backend && python -m pytest app/tests/test_logging.py -v
 
 # Run geocoding and distance calculation tests (Sprint 4)
-pytest app/tests/test_address_validation.py -v
-pytest app/tests/test_distance_calculation.py -v
-pytest app/tests/test_geocoding_service.py -v
-pytest app/tests/test_geocoding_reliability.py -v
-pytest app/tests/test_geocoding_integration.py -v
+cd backend && python -m pytest app/tests/test_address_validation.py -v
+cd backend && python -m pytest app/tests/test_distance_calculation.py -v
+cd backend && python -m pytest app/tests/test_geocoding_service.py -v
+cd backend && python -m pytest app/tests/test_geocoding_reliability.py -v
+cd backend && python -m pytest app/tests/test_geocoding_integration.py -v
 
 # Run distance endpoint tests (Sprint 5)
-pytest app/tests/test_distance_endpoint.py -v
-pytest app/tests/test_distance_validation.py -v
-pytest app/tests/test_distance_geocoding_errors.py -v
-pytest app/tests/test_distance_database.py -v
-pytest app/tests/test_distance_e2e.py -v
+cd backend && python -m pytest app/tests/test_distance_endpoint.py -v
+cd backend && python -m pytest app/tests/test_distance_validation.py -v
+cd backend && python -m pytest app/tests/test_distance_geocoding_errors.py -v
+cd backend && python -m pytest app/tests/test_distance_database.py -v
+cd backend && python -m pytest app/tests/test_distance_e2e.py -v
 
 # Run history endpoint tests (Sprint 6)
-pytest app/tests/test_history_endpoint.py -v
-pytest app/tests/test_history_filtering.py -v
-pytest app/tests/test_history_sorting.py -v
-pytest app/tests/test_history_validation.py -v
-pytest app/tests/test_history_performance.py -v
-pytest app/tests/test_history_security.py -v
+cd backend && python -m pytest app/tests/test_history_endpoint.py -v
+cd backend && python -m pytest app/tests/test_history_filtering.py -v
+cd backend && python -m pytest app/tests/test_history_sorting.py -v
+cd backend && python -m pytest app/tests/test_history_validation.py -v
+cd backend && python -m pytest app/tests/test_history_performance.py -v
+cd backend && python -m pytest app/tests/test_history_security.py -v
 
 # Run end-to-end tests with real APIs (optional)
-SKIP_E2E_TESTS=false pytest app/tests/test_distance_e2e.py -v
+cd backend && SKIP_E2E_TESTS=false python -m pytest app/tests/test_distance_e2e.py -v
 
 # Run tests with coverage
-pytest --cov=app --cov-report=html
+cd backend && python -m pytest --cov=app --cov-report=html
 
 # Run specific test file
-pytest app/tests/test_environment.py -v
+cd backend && python -m pytest app/tests/test_environment.py -v
 ```
 
 ### Frontend Development
@@ -207,11 +233,14 @@ cd frontend
 npm run dev
 # Access at: http://localhost:5173
 
-# Run frontend tests
-npm test
-npm run test:ui  # Interactive test UI
+# Run frontend tests (from frontend directory)
+cd frontend
+npm test              # Runs tests in watch mode
+npm test -- --run     # Runs tests once and exits
+npm run test:ui       # Interactive test UI
 
-# Frontend code quality
+# Frontend code quality (from frontend directory)
+cd frontend
 npm run lint     # ESLint
 npm run format   # Prettier formatting
 
@@ -227,9 +256,9 @@ cd ..
 
 ```bash
 # Backend code quality
-black .          # Format code with Black
-flake8 .         # Lint with Flake8
-black --check . && flake8 .  # Check before commits
+cd backend && black .          # Format code with Black
+cd backend && flake8 .         # Lint with Flake8
+cd backend && black --check . && flake8 .  # Check before commits
 
 # Frontend code quality
 cd frontend
@@ -238,7 +267,7 @@ npm run format   # Prettier formatting
 cd ..
 
 # Full project quality check
-black --check . && flake8 . && cd frontend && npm run lint && cd ..
+cd backend && black --check . && flake8 . && cd ../frontend && npm run lint && cd ..
 ```
 
 ### Git Workflow
@@ -261,21 +290,29 @@ git push -u origin feature/your-feature-name
 
 ```
 /
-├── app/                    # Backend FastAPI application
-│   ├── api/               # REST endpoint definitions
-│   │   ├── distance.py    # Distance calculation endpoint
-│   │   ├── health.py      # Health check endpoints
-│   │   ├── history.py     # Query history endpoint
-│   │   └── routes.py      # Main router configuration
-│   ├── models/            # Database models and schemas
-│   │   ├── database.py    # SQLAlchemy configuration
-│   │   └── distance_query.py # Distance query model & schemas
-│   ├── services/          # Business logic (geocoding service)
-│   │   ├── distance_service.py # Distance calculation service
-│   │   └── geocoding.py   # Nominatim geocoding service
-│   ├── utils/             # Helper functions (validation, distance calc, logging)
-│   └── tests/             # Unit and integration tests
+├── backend/                # Backend FastAPI application
+│   ├── Dockerfile         # Backend container configuration
+│   ├── app/               # FastAPI application code
+│   │   ├── api/           # REST endpoint definitions
+│   │   │   ├── distance.py    # Distance calculation endpoint
+│   │   │   ├── health.py      # Health check endpoints
+│   │   │   ├── history.py     # Query history endpoint
+│   │   │   └── routes.py      # Main router configuration
+│   │   ├── models/        # Database models and schemas
+│   │   │   ├── database.py    # SQLAlchemy configuration
+│   │   │   └── distance_query.py # Distance query model & schemas
+│   │   ├── services/      # Business logic (geocoding service)
+│   │   │   ├── distance_service.py # Distance calculation service
+│   │   │   └── geocoding.py   # Nominatim geocoding service
+│   │   ├── utils/         # Helper functions (validation, distance calc, logging)
+│   │   └── tests/         # Unit and integration tests
+│   ├── requirements.txt   # Python dependencies
+│   ├── requirements-dev.txt # Development dependencies
+│   ├── pyproject.toml     # Python configuration
+│   ├── pytest.ini        # Test configuration
+│   └── .flake8           # Flake8 linting configuration
 ├── frontend/              # SvelteKit frontend application
+│   ├── Dockerfile         # Frontend container configuration
 │   ├── src/               # Source code
 │   │   ├── lib/           # Shared components and utilities
 │   │   │   ├── components/ # Reusable UI components
@@ -297,16 +334,11 @@ git push -u origin feature/your-feature-name
 │   ├── tsconfig.json      # TypeScript configuration
 │   ├── vite.config.ts     # Vite bundler configuration
 │   └── vitest.config.ts   # Vitest testing configuration
-├── docker/                # Container configurations
-│   ├── docker-compose.yml # PostgreSQL database setup
-│   └── init.sql          # Database schema initialization
+├── docker-compose.yml     # Development orchestration
+├── docker-compose.prod.yml # Production orchestration
+├── init.sql              # Database schema initialization
 ├── project-planning/      # Sprint documentation and planning
-├── requirements.txt       # Python dependencies
-├── requirements-dev.txt   # Development dependencies
-├── .env.example          # Environment variables template
-├── pyproject.toml        # Black and coverage configuration
-├── .flake8               # Flake8 linting configuration
-└── pytest.ini            # pytest configuration
+└── .env.example          # Environment variables template
 ```
 
 ## 🎨 Frontend Features
@@ -503,7 +535,7 @@ cd delivery-distance-tracker
 # Backend setup
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt requirements-dev.txt
+pip install -r backend/requirements.txt backend/requirements-dev.txt
 cp .env.example .env
 
 # Frontend setup
@@ -512,19 +544,19 @@ npm install
 cd ..
 
 # Database setup
-cd docker && docker-compose up -d postgres && cd ..
-python3 -c "from app.utils.database import initialize_database; print(initialize_database())"
+docker-compose up -d postgres
+python3 -c "import sys; sys.path.append('backend'); from app.utils.database import initialize_database; print(initialize_database())"
 ```
 
 ### Development Servers
 
 ```bash
 # Terminal 1: Start database (if not running)
-cd docker && docker-compose up postgres
+docker-compose up postgres
 
 # Terminal 2: Start FastAPI backend
 source venv/bin/activate
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Terminal 3: Start frontend development server
 cd frontend
@@ -544,11 +576,11 @@ npm run dev
 ```bash
 # Run all tests (backend + frontend)
 source venv/bin/activate
-pytest app/tests/ -v
+cd backend && python -m pytest app/tests/ -v && cd ..
 cd frontend && npm test && cd ..
 
 # Code quality checks
-black --check . && flake8 .
+cd backend && black --check . && flake8 . && cd ..
 cd frontend && npm run lint && cd ..
 
 # Build frontend for production
@@ -558,14 +590,12 @@ npm run preview  # Preview production build
 cd ..
 
 # Database operations
-cd docker
 docker-compose logs postgres        # View database logs
 docker-compose down -v              # Reset database (removes data)
 docker-compose up -d postgres       # Restart database
-cd ..
 
 # Health checks
-python3 -c "from app.utils.database import check_database_health; print(check_database_health())"
+python3 -c "import sys; sys.path.append('backend'); from app.utils.database import check_database_health; print(check_database_health())"
 curl http://localhost:8000/api/v1/health
 ```
 
@@ -671,7 +701,7 @@ pip install -r requirements.txt requirements-dev.txt
 docker-compose down -v
 rm -rf frontend/node_modules frontend/.svelte-kit
 cd frontend && npm install && cd ..
-cd docker && docker-compose up -d postgres && cd ..
+docker-compose up -d postgres
 ```
 
 ## 📞 Support

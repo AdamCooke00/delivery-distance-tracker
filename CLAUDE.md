@@ -51,34 +51,40 @@ main (production) → develop (integration) → feature/sprint-XX-name
 
 ### Implementation Structure
 ```
-/app                 # Backend (FastAPI)
-  /api              # REST endpoints
-  /models           # DB models & schemas
-  /services         # Business logic
-  /utils            # Helpers
-  /tests            # Backend tests
+/backend            # Backend (FastAPI)
+  /app              # FastAPI application
+    /api            # REST endpoints
+    /models         # DB models & schemas
+    /services       # Business logic
+    /utils          # Helpers
+    /tests          # Backend tests
+  Dockerfile        # Backend container config
+  requirements.txt  # Python dependencies
+  pyproject.toml    # Python config
+  pytest.ini        # Test config
 /frontend           # SvelteKit app
-/docker             # Container configs
+  Dockerfile        # Frontend container config
+docker-compose.yml  # Development orchestration
+init.sql            # Database initialization
 ```
 
 ## ⚡ Essential Commands
 
 ### Testing
 ```bash
-pytest app/tests/              # Backend tests
+pytest backend/app/tests/      # Backend tests
 npm test                       # Frontend tests (in /frontend)
 ```
 
 ### Code Quality
 ```bash
-black .                        # Format Python
-flake8                         # Lint Python
+cd backend && black . && flake8 .  # Format & lint Python
 ```
 
 ### Development
 ```bash
 docker-compose up              # Start services
-uvicorn app.main:app --reload  # Start FastAPI
+cd backend && uvicorn app.main:app --reload  # Start FastAPI
 npm run dev                    # Start SvelteKit (in /frontend)
 ```
 

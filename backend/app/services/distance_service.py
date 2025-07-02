@@ -30,7 +30,6 @@ Security Features:
 """
 
 import asyncio
-from datetime import datetime
 from typing import Dict, Any, Optional, Tuple
 from decimal import Decimal
 
@@ -72,7 +71,6 @@ class DistanceCalculationResult:
         destination_geocoding: Optional[GeocodingResult],
         distance_km: Optional[float],
         query_id: Optional[int] = None,
-        created_at: Optional[datetime] = None,
     ):
         self.source_address = source_address
         self.destination_address = destination_address
@@ -80,7 +78,6 @@ class DistanceCalculationResult:
         self.destination_geocoding = destination_geocoding
         self.distance_km = distance_km
         self.query_id = query_id
-        self.created_at = created_at or datetime.utcnow()
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary for API response."""
@@ -89,7 +86,6 @@ class DistanceCalculationResult:
             "source_address": self.source_address,
             "destination_address": self.destination_address,
             "distance_km": self.distance_km,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
         if self.source_geocoding:
@@ -349,7 +345,6 @@ class DistanceService:
             db_session.refresh(db_query)
 
             query_id = db_query.id
-            created_at = db_query.created_at
 
             logger.info(f"Distance query stored in database with ID: {query_id}")
 
@@ -385,7 +380,6 @@ class DistanceService:
             destination_geocoding=destination_geocoding,
             distance_km=distance_km,
             query_id=query_id,
-            created_at=created_at,
         )
 
         logger.info(

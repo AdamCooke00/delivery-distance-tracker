@@ -24,20 +24,44 @@ This application allows users to:
 - Python 3.8 or higher
 - Node.js 18+ and npm (for frontend development)
 - Git
-- Docker & Docker Compose
+- Docker & Docker Compose (required for PostgreSQL database)
+
+> **⚠️ Important**: Even for local development, Docker is required to run the PostgreSQL database. The application expects PostgreSQL to be running on port 5432.
 
 ## 🚀 Quick Start
 
-### 1. Clone the Repository
+### Clone the Repository
 
 ```bash
 git clone https://github.com/AdamCooke00/delivery-distance-tracker.git
 cd delivery-distance-tracker
 ```
 
-### 2. Set Up Python Environment
+### Docker Quick Start (Recommended)
 
 ```bash
+# Copy environment variables template
+cp .env.example .env
+
+# Start the entire application with one command
+docker-compose up --build
+
+# Access the application:
+# Frontend: http://localhost:3000
+# Backend API: http://localhost:8000
+# API Documentation: http://localhost:8000/docs
+```
+
+That's it! The complete application is now running with the database initialized.
+
+### Manual Setup (Alternative)
+
+> **Note**: This setup still requires Docker for the PostgreSQL database. You cannot run the application without a database.
+
+```bash
+# FIRST: Start the PostgreSQL database (required!)
+docker-compose up -d postgres
+
 # Create virtual environment
 python3 -m venv venv
 
@@ -45,15 +69,14 @@ python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
+pip install -r backend/requirements.txt
+pip install -r backend/requirements-dev.txt
 ```
 
-### 3. Set Up Database with Docker
+### Set Up Database with Docker
 
 ```bash
-# Start PostgreSQL database
-cd docker
+# Start PostgreSQL database only
 docker-compose up -d postgres
 
 # Verify database is running
@@ -61,13 +84,16 @@ docker-compose ps
 docker-compose logs postgres | grep "database system is ready"
 ```
 
-### 4. Configure Environment Variables
+### Configure Environment Variables
 
 ```bash
-# Copy environment template
+# Copy backend environment template
 cp .env.example .env
 
-# Edit .env file with your configuration
+# Copy frontend environment template
+cp frontend/.env.example frontend/.env
+
+# Edit .env file with your backend configuration
 # DATABASE_URL=postgresql://delivery_user:delivery_password@localhost:5432/delivery_tracker
 # POSTGRES_USER=delivery_user
 # POSTGRES_PASSWORD=delivery_password
@@ -75,9 +101,13 @@ cp .env.example .env
 # NOMINATIM_BASE_URL=https://nominatim.openstreetmap.org
 # CORS_ORIGINS=http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173
 # LOG_LEVEL=INFO
+
+# Edit frontend/.env file with your frontend configuration
+# VITE_API_URL=http://localhost:8000/api/v1  # For development
+# VITE_API_URL=https://your-api.com/api/v1  # For production
 ```
 
-### 5. Initialize Database Schema
+### Initialize Database Schema
 
 ```bash
 # Activate virtual environment
@@ -85,6 +115,7 @@ source venv/bin/activate
 
 # Initialize database tables
 python3 -c "
+import sys; sys.path.append('backend')
 from app.utils.database import initialize_database
 success, message = initialize_database()
 print(f'Database initialization: {message}')
@@ -92,13 +123,14 @@ print(f'Database initialization: {message}')
 
 # Verify database health
 python3 -c "
+import sys; sys.path.append('backend')
 from app.utils.database import check_database_health
 healthy, message = check_database_health()
 print(f'Database health: {message}')
 "
 ```
 
-### 6. Set Up Frontend
+### Set Up Frontend
 
 ```bash
 # Install frontend dependencies
@@ -113,7 +145,7 @@ npm run lint
 cd ..
 ```
 
-### 7. Verify Installation
+### Verify Installation
 
 ```bash
 # Check Python environment
@@ -128,8 +160,7 @@ npm --version
 cd ..
 
 # Run code quality checks
-black --check .
-flake8 .
+cd backend && black --check . && flake8 . && cd ..
 ```
 
 ## 🧪 Development Workflow
@@ -138,65 +169,70 @@ flake8 .
 
 ```bash
 # Start database
-cd docker && docker-compose up -d postgres
+docker-compose up -d postgres
 
 # Stop database
-cd docker && docker-compose down
+docker-compose down
 
 # View database logs
-cd docker && docker-compose logs postgres
+docker-compose logs postgres
 
 # Reset database (removes all data)
-cd docker && docker-compose down -v && docker-compose up -d postgres
+docker-compose down -v && docker-compose up -d postgres
 ```
 
 ### Testing
 
 ```bash
-# Run all tests
+# IMPORTANT: Start the database before running tests
+docker-compose up -d postgres
+
+# Activate virtual environment (required for all test commands)
 source venv/bin/activate
-pytest app/tests/ -v
+
+# Run all tests
+cd backend && python -m pytest app/tests/ -v
 
 # Run database tests specifically
-pytest app/tests/test_database_*.py -v
+cd backend && python -m pytest app/tests/test_database_*.py -v
 
 # Run FastAPI application tests
-pytest app/tests/test_application.py -v
-pytest app/tests/test_health.py -v
-pytest app/tests/test_error_handling.py -v
-pytest app/tests/test_cors.py -v
-pytest app/tests/test_logging.py -v
+cd backend && python -m pytest app/tests/test_application.py -v
+cd backend && python -m pytest app/tests/test_health.py -v
+cd backend && python -m pytest app/tests/test_error_handling.py -v
+cd backend && python -m pytest app/tests/test_cors.py -v
+cd backend && python -m pytest app/tests/test_logging.py -v
 
 # Run geocoding and distance calculation tests (Sprint 4)
-pytest app/tests/test_address_validation.py -v
-pytest app/tests/test_distance_calculation.py -v
-pytest app/tests/test_geocoding_service.py -v
-pytest app/tests/test_geocoding_reliability.py -v
-pytest app/tests/test_geocoding_integration.py -v
+cd backend && python -m pytest app/tests/test_address_validation.py -v
+cd backend && python -m pytest app/tests/test_distance_calculation.py -v
+cd backend && python -m pytest app/tests/test_geocoding_service.py -v
+cd backend && python -m pytest app/tests/test_geocoding_reliability.py -v
+cd backend && python -m pytest app/tests/test_geocoding_integration.py -v
 
 # Run distance endpoint tests (Sprint 5)
-pytest app/tests/test_distance_endpoint.py -v
-pytest app/tests/test_distance_validation.py -v
-pytest app/tests/test_distance_geocoding_errors.py -v
-pytest app/tests/test_distance_database.py -v
-pytest app/tests/test_distance_e2e.py -v
+cd backend && python -m pytest app/tests/test_distance_endpoint.py -v
+cd backend && python -m pytest app/tests/test_distance_validation.py -v
+cd backend && python -m pytest app/tests/test_distance_geocoding_errors.py -v
+cd backend && python -m pytest app/tests/test_distance_database.py -v
+cd backend && python -m pytest app/tests/test_distance_e2e.py -v
 
 # Run history endpoint tests (Sprint 6)
-pytest app/tests/test_history_endpoint.py -v
-pytest app/tests/test_history_filtering.py -v
-pytest app/tests/test_history_sorting.py -v
-pytest app/tests/test_history_validation.py -v
-pytest app/tests/test_history_performance.py -v
-pytest app/tests/test_history_security.py -v
+cd backend && python -m pytest app/tests/test_history_endpoint.py -v
+cd backend && python -m pytest app/tests/test_history_filtering.py -v
+cd backend && python -m pytest app/tests/test_history_sorting.py -v
+cd backend && python -m pytest app/tests/test_history_validation.py -v
+cd backend && python -m pytest app/tests/test_history_performance.py -v
+cd backend && python -m pytest app/tests/test_history_security.py -v
 
 # Run end-to-end tests with real APIs (optional)
-SKIP_E2E_TESTS=false pytest app/tests/test_distance_e2e.py -v
+cd backend && SKIP_E2E_TESTS=false python -m pytest app/tests/test_distance_e2e.py -v
 
 # Run tests with coverage
-pytest --cov=app --cov-report=html
+cd backend && python -m pytest --cov=app --cov-report=html
 
 # Run specific test file
-pytest app/tests/test_environment.py -v
+cd backend && python -m pytest app/tests/test_environment.py -v
 ```
 
 ### Frontend Development
@@ -207,11 +243,14 @@ cd frontend
 npm run dev
 # Access at: http://localhost:5173
 
-# Run frontend tests
-npm test
-npm run test:ui  # Interactive test UI
+# Run frontend tests (from frontend directory)
+cd frontend
+npm test              # Runs tests in watch mode
+npm test -- --run     # Runs tests once and exits
+npm run test:ui       # Interactive test UI
 
-# Frontend code quality
+# Frontend code quality (from frontend directory)
+cd frontend
 npm run lint     # ESLint
 npm run format   # Prettier formatting
 
@@ -227,9 +266,9 @@ cd ..
 
 ```bash
 # Backend code quality
-black .          # Format code with Black
-flake8 .         # Lint with Flake8
-black --check . && flake8 .  # Check before commits
+cd backend && black .          # Format code with Black
+cd backend && flake8 .         # Lint with Flake8
+cd backend && black --check . && flake8 .  # Check before commits
 
 # Frontend code quality
 cd frontend
@@ -238,7 +277,7 @@ npm run format   # Prettier formatting
 cd ..
 
 # Full project quality check
-black --check . && flake8 . && cd frontend && npm run lint && cd ..
+cd backend && black --check . && flake8 . && cd ../frontend && npm run lint && cd ..
 ```
 
 ### Git Workflow
@@ -261,21 +300,29 @@ git push -u origin feature/your-feature-name
 
 ```
 /
-├── app/                    # Backend FastAPI application
-│   ├── api/               # REST endpoint definitions
-│   │   ├── distance.py    # Distance calculation endpoint
-│   │   ├── health.py      # Health check endpoints
-│   │   ├── history.py     # Query history endpoint
-│   │   └── routes.py      # Main router configuration
-│   ├── models/            # Database models and schemas
-│   │   ├── database.py    # SQLAlchemy configuration
-│   │   └── distance_query.py # Distance query model & schemas
-│   ├── services/          # Business logic (geocoding service)
-│   │   ├── distance_service.py # Distance calculation service
-│   │   └── geocoding.py   # Nominatim geocoding service
-│   ├── utils/             # Helper functions (validation, distance calc, logging)
-│   └── tests/             # Unit and integration tests
+├── backend/                # Backend FastAPI application
+│   ├── Dockerfile         # Backend container configuration
+│   ├── app/               # FastAPI application code
+│   │   ├── api/           # REST endpoint definitions
+│   │   │   ├── distance.py    # Distance calculation endpoint
+│   │   │   ├── health.py      # Health check endpoints
+│   │   │   ├── history.py     # Query history endpoint
+│   │   │   └── routes.py      # Main router configuration
+│   │   ├── models/        # Database models and schemas
+│   │   │   ├── database.py    # SQLAlchemy configuration
+│   │   │   └── distance_query.py # Distance query model & schemas
+│   │   ├── services/      # Business logic (geocoding service)
+│   │   │   ├── distance_service.py # Distance calculation service
+│   │   │   └── geocoding.py   # Nominatim geocoding service
+│   │   ├── utils/         # Helper functions (validation, distance calc, logging)
+│   │   └── tests/         # Unit and integration tests
+│   ├── requirements.txt   # Python dependencies
+│   ├── requirements-dev.txt # Development dependencies
+│   ├── pyproject.toml     # Python configuration
+│   ├── pytest.ini        # Test configuration
+│   └── .flake8           # Flake8 linting configuration
 ├── frontend/              # SvelteKit frontend application
+│   ├── Dockerfile         # Frontend container configuration
 │   ├── src/               # Source code
 │   │   ├── lib/           # Shared components and utilities
 │   │   │   ├── components/ # Reusable UI components
@@ -297,16 +344,10 @@ git push -u origin feature/your-feature-name
 │   ├── tsconfig.json      # TypeScript configuration
 │   ├── vite.config.ts     # Vite bundler configuration
 │   └── vitest.config.ts   # Vitest testing configuration
-├── docker/                # Container configurations
-│   ├── docker-compose.yml # PostgreSQL database setup
-│   └── init.sql          # Database schema initialization
+├── docker-compose.yml     # Docker orchestration configuration
+├── init.sql              # Database schema initialization
 ├── project-planning/      # Sprint documentation and planning
-├── requirements.txt       # Python dependencies
-├── requirements-dev.txt   # Development dependencies
-├── .env.example          # Environment variables template
-├── pyproject.toml        # Black and coverage configuration
-├── .flake8               # Flake8 linting configuration
-└── pytest.ini            # pytest configuration
+└── .env.example          # Environment variables template
 ```
 
 ## 🎨 Frontend Features
@@ -326,7 +367,7 @@ The SvelteKit frontend provides a clean, responsive web interface for the distan
 - **Paginated Table**: View past distance calculations
 - **Load More**: Incremental loading for large datasets
 - **Interactive Rows**: Click history items to prefill calculator
-- **Date Formatting**: Human-readable timestamps
+- **Streamlined Display**: Clean table layout with essential information
 - **Empty States**: Helpful messages when no data exists
 - **Error Recovery**: Graceful handling of API failures
 - **Responsive Design**: Optimized table layout for mobile devices
@@ -387,8 +428,7 @@ Calculate the distance between two addresses using geocoding and the Haversine f
   "destination_lng": -122.009,
   "source_coords": [37.4224764, -122.0842499],
   "destination_coords": [37.3349, -122.009],
-  "distance_km": 11.2,
-  "created_at": "2025-06-30T10:30:45.123456"
+  "distance_km": 11.2
 }
 ```
 
@@ -417,11 +457,9 @@ Retrieve paginated history of distance calculations with filtering, searching, a
 **Query Parameters:**
 - `limit` (int, default: 10): Number of items to return (1-100)
 - `offset` (int, default: 0): Number of items to skip for pagination
-- `start_date` (datetime): Filter results from this date (ISO format)
-- `end_date` (datetime): Filter results up to this date (ISO format)
 - `search` (string): Search term for filtering by addresses
-- `sort_by` (string, default: "created_at"): Field to sort by
-  - Options: `created_at`, `distance_km`, `source_address`, `destination_address`
+- `sort_by` (string, default: "id"): Field to sort by
+  - Options: `id`, `distance_km`, `source_address`, `destination_address`
 - `sort_order` (string, default: "desc"): Sort order (`asc` or `desc`)
 
 **Response (200 OK):**
@@ -436,8 +474,7 @@ Retrieve paginated history of distance calculations with filtering, searching, a
       "source_lng": -122.0842499,
       "destination_lat": 37.3349,
       "destination_lng": -122.009,
-      "distance_km": 11.2,
-      "created_at": "2025-06-30T10:30:45.123456"
+      "distance_km": 11.2
     }
   ],
   "total": 156,
@@ -453,9 +490,6 @@ Retrieve paginated history of distance calculations with filtering, searching, a
 # Basic pagination
 curl "http://localhost:8000/api/v1/history?limit=20&offset=40"
 
-# Filter by date range
-curl "http://localhost:8000/api/v1/history?start_date=2025-06-01&end_date=2025-06-30"
-
 # Search in addresses
 curl "http://localhost:8000/api/v1/history?search=New%20York"
 
@@ -463,11 +497,11 @@ curl "http://localhost:8000/api/v1/history?search=New%20York"
 curl "http://localhost:8000/api/v1/history?sort_by=distance_km&sort_order=desc"
 
 # Combined filters
-curl "http://localhost:8000/api/v1/history?search=California&limit=5&sort_by=created_at&sort_order=asc"
+curl "http://localhost:8000/api/v1/history?search=California&limit=5&sort_by=id&sort_order=asc"
 ```
 
 **Error Responses:**
-- `422 Unprocessable Entity` - Invalid query parameters (negative limit/offset, invalid date format, etc.)
+- `422 Unprocessable Entity` - Invalid query parameters (negative limit/offset, invalid sort field, etc.)
 - `500 Internal Server Error` - Database error
 
 **Security Features:**
@@ -503,7 +537,7 @@ cd delivery-distance-tracker
 # Backend setup
 python3 -m venv venv
 source venv/bin/activate
-pip install -r requirements.txt requirements-dev.txt
+pip install -r backend/requirements.txt backend/requirements-dev.txt
 cp .env.example .env
 
 # Frontend setup
@@ -512,19 +546,23 @@ npm install
 cd ..
 
 # Database setup
-cd docker && docker-compose up -d postgres && cd ..
-python3 -c "from app.utils.database import initialize_database; print(initialize_database())"
+docker-compose up -d postgres
+python3 -c "import sys; sys.path.append('backend'); from app.utils.database import initialize_database; print(initialize_database())"
 ```
 
 ### Development Servers
 
 ```bash
-# Terminal 1: Start database (if not running)
-cd docker && docker-compose up postgres
+# Terminal 1: Start database (REQUIRED - must be running first!)
+docker-compose up -d postgres
+
+# Verify database is running
+docker-compose ps
+# Should show: delivery_tracker_db ... Up ... 5432/tcp
 
 # Terminal 2: Start FastAPI backend
 source venv/bin/activate
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+cd backend && uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # Terminal 3: Start frontend development server
 cd frontend
@@ -544,11 +582,11 @@ npm run dev
 ```bash
 # Run all tests (backend + frontend)
 source venv/bin/activate
-pytest app/tests/ -v
+cd backend && python -m pytest app/tests/ -v && cd ..
 cd frontend && npm test && cd ..
 
 # Code quality checks
-black --check . && flake8 .
+cd backend && black --check . && flake8 . && cd ..
 cd frontend && npm run lint && cd ..
 
 # Build frontend for production
@@ -558,14 +596,12 @@ npm run preview  # Preview production build
 cd ..
 
 # Database operations
-cd docker
 docker-compose logs postgres        # View database logs
 docker-compose down -v              # Reset database (removes data)
 docker-compose up -d postgres       # Restart database
-cd ..
 
 # Health checks
-python3 -c "from app.utils.database import check_database_health; print(check_database_health())"
+python3 -c "import sys; sys.path.append('backend'); from app.utils.database import check_database_health; print(check_database_health())"
 curl http://localhost:8000/api/v1/health
 ```
 
@@ -582,12 +618,10 @@ CREATE TABLE distance_queries (
     source_lng DECIMAL(11, 8), 
     destination_lat DECIMAL(10, 8),
     destination_lng DECIMAL(11, 8),
-    distance_km DECIMAL(10, 3),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    distance_km DECIMAL(10, 3)
 );
 
 -- Performance indexes
-CREATE INDEX idx_distance_queries_created_at ON distance_queries(created_at);
 CREATE INDEX idx_distance_queries_addresses ON distance_queries(source_address, destination_address);
 ```
 
@@ -671,7 +705,7 @@ pip install -r requirements.txt requirements-dev.txt
 docker-compose down -v
 rm -rf frontend/node_modules frontend/.svelte-kit
 cd frontend && npm install && cd ..
-cd docker && docker-compose up -d postgres && cd ..
+docker-compose up -d postgres
 ```
 
 ## 📞 Support

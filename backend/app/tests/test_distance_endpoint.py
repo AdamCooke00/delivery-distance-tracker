@@ -61,7 +61,6 @@ class TestDistanceEndpointSuccess:
             "source_coords",
             "destination_coords",
             "distance_km",
-            "created_at",
         ]
         for field in required_fields:
             assert field in data, f"Missing required field: {field}"
@@ -71,11 +70,6 @@ class TestDistanceEndpointSuccess:
         assert data["distance_km"] > 0
         assert len(data["source_coords"]) == 2
         assert len(data["destination_coords"]) == 2
-        assert (
-            data["timestamp"] is not None
-            if "timestamp" in data
-            else data["created_at"] is not None
-        )
 
         # Verify geocoding data
         assert data["source_lat"] == 37.4224764
@@ -249,7 +243,6 @@ class TestDistanceEndpointSuccess:
         assert isinstance(data["source_coords"], list)
         assert isinstance(data["destination_coords"], list)
         assert isinstance(data["distance_km"], (int, float))
-        assert isinstance(data["created_at"], str)
 
         # Verify coordinate arrays format
         assert len(data["source_coords"]) == 2
@@ -258,14 +251,6 @@ class TestDistanceEndpointSuccess:
         assert data["source_coords"][1] == data["source_lng"]
         assert data["destination_coords"][0] == data["destination_lat"]
         assert data["destination_coords"][1] == data["destination_lng"]
-
-        # Verify timestamp format (ISO format)
-        from datetime import datetime
-
-        try:
-            datetime.fromisoformat(data["created_at"].replace("Z", "+00:00"))
-        except ValueError:
-            pytest.fail("created_at timestamp is not in valid ISO format")
 
         print("✅ Response format validation works")
 

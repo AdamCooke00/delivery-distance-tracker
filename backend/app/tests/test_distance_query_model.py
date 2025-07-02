@@ -1,6 +1,5 @@
 """Test distance query model operations."""
 
-from datetime import datetime
 from app.models.distance_query import DistanceQuery
 from app.models.database import SessionLocal
 
@@ -25,7 +24,6 @@ def test_create_distance_query():
         db.refresh(query)
 
         assert query.id is not None
-        assert query.created_at is not None
         assert float(query.distance_km) == 5.2
         assert query.source_address == "123 Main St, City, State"
         assert query.destination_address == "456 Oak Ave, City, State"
@@ -59,9 +57,7 @@ def test_query_retrieval():
         queries = db.query(DistanceQuery).all()
         assert len(queries) >= 1
 
-        latest_query = (
-            db.query(DistanceQuery).order_by(DistanceQuery.created_at.desc()).first()
-        )
+        latest_query = db.query(DistanceQuery).order_by(DistanceQuery.id.desc()).first()
         assert latest_query is not None
         assert latest_query.source_address == "Test Source"
 
@@ -85,7 +81,6 @@ def test_model_validation():
         db.refresh(query)
 
         assert query.id is not None
-        assert query.created_at is not None
         assert query.source_lat is None  # Optional field
         assert query.distance_km is None  # Optional field
 
@@ -163,27 +158,22 @@ def test_model_delete_operations():
         db.close()
 
 
-def test_model_datetime_handling():
-    """Test datetime field handling"""
+def test_model_id_handling():
+    """Test ID field handling and auto-increment"""
     db = SessionLocal()
 
     try:
-        query = DistanceQuery(
-            source_address="Time Test", destination_address="Time Test 2"
-        )
+        query = DistanceQuery(source_address="ID Test", destination_address="ID Test 2")
 
         db.add(query)
         db.commit()
         db.refresh(query)
 
-        # Check that created_at is set and is recent
-        assert query.created_at is not None
-        assert isinstance(query.created_at, datetime)
+        # Check that ID is set and is positive
+        assert query.id is not None
+        assert isinstance(query.id, int)
+        assert query.id > 0
 
-        # Should be within the last minute
-        time_diff = datetime.utcnow() - query.created_at
-        assert time_diff.total_seconds() < 60
-
-        print("✅ Model datetime handling works")
+        print("✅ Model ID handling works")
     finally:
         db.close()

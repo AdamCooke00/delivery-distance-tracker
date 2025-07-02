@@ -1,6 +1,5 @@
 # File: app/tests/test_history_endpoint.py
 from fastapi.testclient import TestClient
-from datetime import datetime, timedelta
 from app.main import app
 from app.models.distance_query import DistanceQuery
 from app.models.database import SessionLocal
@@ -25,7 +24,6 @@ def setup_test_data():
             "destination_lat": 34.0522,
             "destination_lng": -118.2437,
             "distance_km": 3944.0,
-            "created_at": datetime.now() - timedelta(days=1),
         },
         {
             "source_address": "Test Address 2",
@@ -35,7 +33,6 @@ def setup_test_data():
             "destination_lat": 48.8566,
             "destination_lng": 2.3522,
             "distance_km": 344.0,
-            "created_at": datetime.now() - timedelta(hours=2),
         },
         {
             "source_address": "Test Address 3",
@@ -45,7 +42,6 @@ def setup_test_data():
             "destination_lat": 37.7749,
             "destination_lng": -122.4194,
             "distance_km": 8280.0,
-            "created_at": datetime.now(),
         },
     ]
 
@@ -79,7 +75,6 @@ def test_get_history_basic():
         "source_address",
         "destination_address",
         "distance_km",
-        "created_at",
     ]
     for field in item_fields:
         assert field in item

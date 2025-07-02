@@ -63,9 +63,7 @@ class TestDistanceDatabaseIntegration:
 
             # Verify stored data
             latest_query = (
-                db.query(DistanceQuery)
-                .order_by(DistanceQuery.created_at.desc())
-                .first()
+                db.query(DistanceQuery).order_by(DistanceQuery.id.desc()).first()
             )
             assert latest_query is not None
             assert latest_query.source_address == "New York, NY, USA"
@@ -76,7 +74,6 @@ class TestDistanceDatabaseIntegration:
             assert float(latest_query.destination_lng) == -118.2437
             assert latest_query.distance_km is not None
             assert float(latest_query.distance_km) > 0
-            assert latest_query.created_at is not None
 
             # Verify response contains database ID
             response_data = response.json()
@@ -245,10 +242,8 @@ class TestDistanceDatabaseIntegration:
         print("✅ Multiple queries stored separately works")
 
     @patch("app.services.geocoding.GeocodingService.geocode_address")
-    def test_timestamp_handling(self, mock_geocode):
-        """Test proper timestamp handling in database storage"""
-        from datetime import datetime
-
+    def test_database_record_creation(self, mock_geocode):
+        """Test proper database record creation without timestamps"""
         mock_geocode.side_effect = [
             GeocodingResult(
                 latitude=42.3601,
@@ -266,9 +261,6 @@ class TestDistanceDatabaseIntegration:
             ),
         ]
 
-        # Record time before request
-        before_request = datetime.utcnow()
-
         request_data = {
             "source_address": "Boston, MA",
             "destination_address": "Baltimore, MD",
@@ -277,13 +269,10 @@ class TestDistanceDatabaseIntegration:
         response = client.post("/api/v1/distance", json=request_data)
         assert response.status_code == 200
 
-        # Record time after request
-        after_request = datetime.utcnow()
-
         response_data = response.json()
         record_id = response_data["id"]
 
-        # Verify timestamp in database
+        # Verify record in database
         db = SessionLocal()
         try:
             stored_query = (
@@ -291,24 +280,19 @@ class TestDistanceDatabaseIntegration:
             )
             assert stored_query is not None
 
-            # Verify timestamp is within reasonable range
-            created_at = stored_query.created_at
-            assert before_request <= created_at <= after_request
-
-            # Verify timestamp in response matches database
-            response_timestamp = datetime.fromisoformat(
-                response_data["created_at"].replace("Z", "+00:00")
-            )
-            # Allow small differences due to serialization
-            time_diff = abs(
-                (response_timestamp.replace(tzinfo=None) - created_at).total_seconds()
-            )
-            assert time_diff < 1.0  # Should be within 1 second
+            # Verify all required fields are present
+            assert stored_query.source_address == "Boston, MA"
+            assert stored_query.destination_address == "Baltimore, MD"
+            assert stored_query.source_lat is not None
+            assert stored_query.source_lng is not None
+            assert stored_query.destination_lat is not None
+            assert stored_query.destination_lng is not None
+            assert stored_query.distance_km is not None
 
         finally:
             db.close()
 
-        print("✅ Timestamp handling works")
+        print("✅ Database record creation works")
 
 
 class TestDistanceDatabaseErrorHandling:

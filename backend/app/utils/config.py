@@ -26,7 +26,8 @@ class Config:
             List[str]: List of allowed origins for CORS
         """
         cors_origins_env = os.getenv(
-            "CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173"
+            "CORS_ORIGINS",
+            "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5173,http://127.0.0.1:5173",
         )
         return [origin.strip() for origin in cors_origins_env.split(",")]
 

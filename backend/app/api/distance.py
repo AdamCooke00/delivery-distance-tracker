@@ -95,7 +95,6 @@ async def calculate_distance(
             - source_coords: [lat, lng] array for source
             - destination_coords: [lat, lng] array for destination
             - distance_km: Calculated distance in kilometers
-            - created_at: Timestamp of the query
 
     Raises:
         HTTPException 400: Geocoding failed (address not found)
@@ -124,7 +123,6 @@ async def calculate_distance(
             "source_coords": [37.4224764, -122.0842499],
             "destination_coords": [37.3349, -122.009],
             "distance_km": 11.2,
-            "created_at": "2025-06-30T10:30:45.123456"
         }
         ```
 

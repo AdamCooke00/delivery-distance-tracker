@@ -1,7 +1,7 @@
 # Claude Memory - Delivery Distance Tracker
 
 ## 🎯 Project Context
-- **Type**: Delivery Distance Tracker
+- **Type**: Delivery Distance Tracker (Bain Assessment)
 - **Stack**: FastAPI + SvelteKit + PostgreSQL + Docker
 - **Architecture**: Monolithic MVP with 8-sprint development approach
 
@@ -32,15 +32,7 @@ main (production) → develop (integration) → feature/sprint-XX-name
 ## 🚀 Sprint Workflow
 - **Total**: 8 sprints (Foundation → Database → API → Geocoding → Distance → History → Frontend → Deployment)
 - **Process**: Complete acceptance criteria → pass 5 test cases → implement → commit
-
-### Sprint Completion Process
-- **IMPORTANT**: Only update sprint checkboxes at the very end of sprint completion
-- Review entire sprint file to verify all acceptance criteria were met
-- Check boxes for completed items and add notes for any deviations or differences
-- **REQUIRED**: Document all files created/modified with detailed descriptions
-- Add completion summary with date and key deliverables at end of sprint file
-- Use Sprint Completion Checklist to verify all requirements met
-- Create feature branch, commit with conventional format, merge to develop
+- **Current Sprint**: [Track here]
 
 ## 📁 Key File Navigation
 
@@ -51,40 +43,34 @@ main (production) → develop (integration) → feature/sprint-XX-name
 
 ### Implementation Structure
 ```
-/backend            # Backend (FastAPI)
-  /app              # FastAPI application
-    /api            # REST endpoints
-    /models         # DB models & schemas
-    /services       # Business logic
-    /utils          # Helpers
-    /tests          # Backend tests
-  Dockerfile        # Backend container config
-  requirements.txt  # Python dependencies
-  pyproject.toml    # Python config
-  pytest.ini        # Test config
+/app                 # Backend (FastAPI)
+  /api              # REST endpoints
+  /models           # DB models & schemas
+  /services         # Business logic
+  /utils            # Helpers
+  /tests            # Backend tests
 /frontend           # SvelteKit app
-  Dockerfile        # Frontend container config
-docker-compose.yml  # Development orchestration
-init.sql            # Database initialization
+/docker             # Container configs
 ```
 
 ## ⚡ Essential Commands
 
 ### Testing
 ```bash
-pytest backend/app/tests/      # Backend tests
+pytest app/tests/              # Backend tests
 npm test                       # Frontend tests (in /frontend)
 ```
 
 ### Code Quality
 ```bash
-cd backend && black . && flake8 .  # Format & lint Python
+black .                        # Format Python
+flake8                         # Lint Python
 ```
 
 ### Development
 ```bash
 docker-compose up              # Start services
-cd backend && uvicorn app.main:app --reload  # Start FastAPI
+uvicorn app.main:app --reload  # Start FastAPI
 npm run dev                    # Start SvelteKit (in /frontend)
 ```
 

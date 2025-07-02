@@ -1,53 +1,49 @@
 # Sprint 6: Query History API
 
-> **📊 SPRINT STATUS: ✅ COMPLETED** (2025-06-30)  
-> **📚 COMPLETION NOTES: All acceptance criteria met with 89% code coverage**  
-> **🔗 DEPENDENCIES: Sprint 2-5 ✅ Complete**
-
 ## 🎯 Objective
 Implement the GET /history endpoint to retrieve past distance queries with pagination, filtering, sorting capabilities, and proper database optimization.
 
 ## 📋 Acceptance Criteria
 
 ### 1. History Endpoint Implementation
-- [x] Create `app/api/history.py` with GET /history endpoint
-- [x] Implement query parameter handling for pagination
-- [x] Add filtering capabilities (date range, address search)
-- [x] Implement sorting options (timestamp, distance, addresses)
-- [x] Return paginated results with metadata
+- [ ] Create `app/api/history.py` with GET /history endpoint
+- [ ] Implement query parameter handling for pagination
+- [ ] Add filtering capabilities (date range, address search)
+- [ ] Implement sorting options (timestamp, distance, addresses)
+- [ ] Return paginated results with metadata
 
 ### 2. Query Parameters & Validation
-- [x] Create Pydantic models for query parameters
-- [x] Implement `limit` and `offset` for pagination
-- [x] Add `start_date` and `end_date` for date filtering
-- [x] Create `search` parameter for address filtering
-- [x] Add `sort_by` and `sort_order` parameters
+- [ ] Create Pydantic models for query parameters
+- [ ] Implement `limit` and `offset` for pagination
+- [ ] Add `start_date` and `end_date` for date filtering
+- [ ] Create `search` parameter for address filtering
+- [ ] Add `sort_by` and `sort_order` parameters
 
 ### 3. Database Query Optimization
-- [x] Create efficient database queries with proper indexes
-- [x] Implement filtering with SQLAlchemy ORM
-- [x] Add query optimization for large datasets
-- [x] Use database-level pagination for performance
-- [x] Implement proper SQL query generation
+- [ ] Create efficient database queries with proper indexes
+- [ ] Implement filtering with SQLAlchemy ORM
+- [ ] Add query optimization for large datasets
+- [ ] Use database-level pagination for performance
+- [ ] Implement proper SQL query generation
 
 ### 4. Response Formatting
-- [x] Create `HistoryResponse` model with pagination metadata
-- [x] Format individual query items consistently
-- [x] Include total count for pagination
-- [x] Add query execution time metadata (via logging)
-- [x] Implement proper JSON serialization
+- [ ] Create `HistoryResponse` model with pagination metadata
+- [ ] Format individual query items consistently
+- [ ] Include total count for pagination
+- [ ] Add query execution time metadata
+- [ ] Implement proper JSON serialization
 
 ### 5. Performance & Caching
-- [x] Optimize database queries for performance
-- [x] Implement query result validation
-- [x] Add response time monitoring
-- [x] Create efficient data transformation
-- [x] Handle large result sets gracefully
+- [ ] Optimize database queries for performance
+- [ ] Implement query result validation
+- [ ] Add response time monitoring
+- [ ] Create efficient data transformation
+- [ ] Handle large result sets gracefully
 
 ### 6. README.md Documentation
-- [x] Update README.md to reflect current repository state
-- [x] Document prerequisites: Python 3.8+, Docker, Docker Compose
-- [x] Include complete setup instructions:
+- [ ] Update README.md to reflect current repository state
+- [ ] Document prerequisites: Python 3.8+, Docker, Docker Compose
+- [ ] Include complete setup instructions:
   - Clone repository steps
   - Virtual environment setup and activation
   - Dependencies installation
@@ -55,8 +51,8 @@ Implement the GET /history endpoint to retrieve past distance queries with pagin
   - Environment variables configuration
   - FastAPI application startup
   - API endpoints testing
-- [x] Document GET /history endpoint usage with query parameters and examples
-- [x] Include commands to test pagination, filtering, and sorting functionality
+- [ ] Document GET /history endpoint usage with query parameters and examples
+- [ ] Include commands to test pagination, filtering, and sorting functionality
 
 ## 🧪 Test Cases That Must Pass
 
@@ -471,21 +467,21 @@ def test_pagination_metadata_accuracy():
 5. Push branch: `git push -u origin feature/sprint-06-history-api`
 
 ## 🔒 Security Requirements
-- [x] Input validation for all query parameters
-- [x] Prevent SQL injection in search functionality
-- [x] Limit maximum result set size
-- [x] Validate date ranges to prevent performance attacks
-- [x] Sanitize search terms
+- [ ] Input validation for all query parameters
+- [ ] Prevent SQL injection in search functionality
+- [ ] Limit maximum result set size
+- [ ] Validate date ranges to prevent performance attacks
+- [ ] Sanitize search terms
 
 ## 📊 Quality Gates
-- [x] All 5 test cases pass
-- [x] Endpoint responds within 2 seconds for reasonable queries
-- [x] Pagination works correctly with accurate metadata
-- [x] Filtering produces correct results
-- [x] Sorting works for all supported fields
-- [x] Database queries are optimized with proper indexes
-- [x] Code passes Black formatting and Flake8 linting
-- [x] Test coverage >= 85% (Achieved: 89% for history.py, 83% overall)
+- [ ] All 5 test cases pass
+- [ ] Endpoint responds within 2 seconds for reasonable queries
+- [ ] Pagination works correctly with accurate metadata
+- [ ] Filtering produces correct results
+- [ ] Sorting works for all supported fields
+- [ ] Database queries are optimized with proper indexes
+- [ ] Code passes Black formatting and Flake8 linting
+- [ ] Test coverage >= 85%
 
 ## 🎁 Deliverables
 1. Complete GET /history endpoint with all features
@@ -509,103 +505,3 @@ def test_pagination_metadata_accuracy():
 
 ## 🔄 Next Sprint Preview
 Sprint 7 will implement the SvelteKit frontend application with components for address input, results display, and integration with the backend API.
-
----
-
-## ✅ Sprint 6 Completion Summary
-
-**Completion Date:** December 30, 2025  
-**Status:** ✅ COMPLETED - All acceptance criteria met
-
-### 📁 Files Created/Modified
-
-#### New Files Created:
-- `app/api/history.py` - Complete GET /history endpoint implementation with pagination, filtering, sorting
-- `app/tests/test_history_endpoint.py` - Basic retrieval and pagination tests (3 tests)
-- `app/tests/test_history_filtering.py` - Date and search filter tests (3 tests)
-- `app/tests/test_history_sorting.py` - Sort functionality tests (4 tests)
-- `app/tests/test_history_validation.py` - Error handling tests (3 tests)
-- `app/tests/test_history_performance.py` - Performance tests (3 tests)
-
-#### Files Modified:
-- `app/api/routes.py` - Added history router registration
-- `README.md` - Added comprehensive GET /history endpoint documentation with examples
-
-### 🎯 Key Deliverables Achieved
-
-1. **Complete GET /history endpoint** with all required features:
-   - Pagination support (limit: 1-100, offset)
-   - Date filtering (start_date, end_date with ISO format)
-   - Address search functionality (case-insensitive)
-   - Sorting by created_at, distance_km, source_address, destination_address
-   - Ascending/descending sort order support
-
-2. **Robust pagination system** with metadata:
-   - `items[]` - Array of history items
-   - `total` - Total count of matching records
-   - `limit` - Applied limit parameter
-   - `offset` - Applied offset parameter
-   - `has_more` - Boolean indicating more results available
-
-3. **Comprehensive test suite** - 16 tests covering:
-   - Basic endpoint functionality
-   - Pagination mechanics
-   - Date range filtering
-   - Address search filtering
-   - Combined filter operations
-   - Sorting by all supported fields
-   - Parameter validation and error handling
-   - Performance requirements
-
-4. **Database optimization features**:
-   - Efficient SQLAlchemy queries with proper filtering
-   - Database-level pagination for performance
-   - Utilizes existing indexes on created_at and addresses
-   - Prevents SQL injection through parameterized queries
-
-5. **Input validation and security**:
-   - Pydantic models for request validation
-   - Pattern validation for sort parameters
-   - Range validation for pagination parameters (limit: 1-100, offset: ≥0)
-   - Date format validation with proper error messages
-   - Search term sanitization
-
-### 📊 Test Results
-- **Total Tests**: 195 tests (all passing)
-- **History Tests**: 16 tests (all passing)
-- **Code Coverage**: 83% overall, 89% for history.py
-- **Performance**: All endpoints respond within 2 seconds
-- **Code Quality**: ✅ Black formatted, ✅ Flake8 compliant
-
-### 🔧 Technical Implementation
-
-**API Endpoint:** `GET /api/v1/history`
-
-**Query Parameters:**
-- `limit` (1-100, default: 10) - Number of items to return
-- `offset` (≥0, default: 0) - Number of items to skip
-- `start_date` (ISO format) - Filter from date
-- `end_date` (ISO format) - Filter to date
-- `search` (string) - Search in addresses
-- `sort_by` (created_at|distance_km|source_address|destination_address, default: created_at)
-- `sort_order` (asc|desc, default: desc)
-
-**Response Format:**
-```json
-{
-  "items": [...],
-  "total": 156,
-  "limit": 10,
-  "offset": 0,
-  "has_more": true
-}
-```
-
-### 🔗 Dependencies Status
-- ✅ Sprint 2: Database schema and models
-- ✅ Sprint 3: FastAPI framework and routing
-- ✅ Sprint 4: Geocoding service integration
-- ✅ Sprint 5: Distance calculation endpoint
-
-### 🚀 Ready for Sprint 7
-All Sprint 6 deliverables complete. The history API is fully functional and ready for frontend integration in Sprint 7.

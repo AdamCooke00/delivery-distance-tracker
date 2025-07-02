@@ -1,0 +1,22 @@
+[flake8]
+max-line-length = 88
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .eggs,
+    *.egg,
+    build,
+    dist,
+    .tox,
+    migrations
+extend-ignore = 
+    E203,
+    W503,
+    E501
+per-file-ignores =
+    __init__.py:F401
+    app/services/distance_service.py:C901
+    app/api/history.py:C901
+max-complexity = 10

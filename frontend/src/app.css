@@ -1,0 +1,30 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/forms';
+
+/* Import Inter font */
+@import '@fontsource/inter/400.css'; /* Regular */
+@import '@fontsource/inter/500.css'; /* Medium */
+@import '@fontsource/inter/600.css'; /* Semibold */
+@import '@fontsource/inter/700.css'; /* Bold */
+
+@theme {
+	/* Custom Color Scheme for Delivery Distance Tracker */
+	--color-primary: #d10001; /* Primary red (buttons) */
+	--color-white: #ffffff; /* White (text and background) */
+	--color-background: #f8f8f6; /* Background */
+	--color-label: #4b4949; /* Greyish label */
+	--color-text: #1b1a1a; /* Black text */
+	--color-input: #7d7d7c; /* Text input background */
+	--color-secondary: #313030; /* Secondary button */
+}
+
+/* Global base styles */
+body {
+	background-color: theme(--color-background);
+	color: theme(--color-text);
+	font-family:
+		'Inter',
+		system-ui,
+		-apple-system,
+		sans-serif;
+}

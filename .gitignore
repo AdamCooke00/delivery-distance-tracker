@@ -14,7 +14,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
+app/lib/
 lib64/
 parts/
 sdist/
@@ -173,6 +173,9 @@ lerna-debug.log*
 .svelte-kit/
 build/
 .output/
+.vercel
+.netlify
+.wrangler
 
 # Frontend environment files
 frontend/.env
@@ -195,6 +198,10 @@ jspm_packages/
 
 # TypeScript
 *.tsbuildinfo
+
+# Vite (from frontend/.gitignore)
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
 
 # Optional npm cache directory
 .npm

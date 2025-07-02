@@ -143,23 +143,6 @@ describe('Component Logic Tests', () => {
 		});
 	});
 
-	describe('Date Formatting Logic', () => {
-		it('should format dates correctly for history display', () => {
-			const formatDate = (dateString: string) => {
-				return new Date(dateString).toLocaleDateString();
-			};
-
-			// Test with known date
-			const testDate = '2025-06-30T10:30:00Z';
-			const formatted = formatDate(testDate);
-
-			// Should be a valid date string (exact format may vary by locale)
-			expect(typeof formatted).toBe('string');
-			expect(formatted.length).toBeGreaterThan(0);
-			expect(formatted).toMatch(/\d/); // Should contain numbers
-		});
-	});
-
 	describe('Form Validation Logic', () => {
 		it('should validate addresses properly', () => {
 			const validateAddress = (address: string) => {

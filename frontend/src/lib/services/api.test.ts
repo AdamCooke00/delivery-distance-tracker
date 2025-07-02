@@ -25,8 +25,7 @@ describe('API Service', () => {
 				source_lng: -74.006,
 				destination_lat: 34.0522,
 				destination_lng: -118.2437,
-				distance_km: 3944.0,
-				created_at: '2025-06-30T17:23:00Z'
+				distance_km: 3944.0
 			};
 
 			mockFetch.mockResolvedValueOnce({
@@ -116,8 +115,7 @@ describe('API Service', () => {
 						source_lng: -74.006,
 						destination_lat: 34.0522,
 						destination_lng: -118.2437,
-						distance_km: 3944.0,
-						created_at: '2025-06-30T17:23:00Z'
+						distance_km: 3944.0
 					}
 				],
 				total: 1,
@@ -161,14 +159,14 @@ describe('API Service', () => {
 				limit: 5,
 				offset: 10,
 				search: 'New York',
-				sort_by: 'created_at',
+				sort_by: 'distance_km',
 				sort_order: 'desc'
 			};
 
 			const result = await getHistory(params);
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:8000/api/v1/history?limit=5&offset=10&search=New+York&sort_by=created_at&sort_order=desc',
+				'http://localhost:8000/api/v1/history?limit=5&offset=10&search=New+York&sort_by=distance_km&sort_order=desc',
 				{
 					headers: {
 						'Content-Type': 'application/json'
@@ -253,11 +251,11 @@ describe('API Service', () => {
 
 			await getHistory({
 				search: 'Main St & Oak Ave',
-				start_date: '2025-01-01T00:00:00Z'
+				sort_by: 'distance_km'
 			});
 
 			expect(mockFetch).toHaveBeenCalledWith(
-				'http://localhost:8000/api/v1/history?search=Main+St+%26+Oak+Ave&start_date=2025-01-01T00%3A00%3A00Z',
+				'http://localhost:8000/api/v1/history?search=Main+St+%26+Oak+Ave&sort_by=distance_km',
 				expect.any(Object)
 			);
 		});

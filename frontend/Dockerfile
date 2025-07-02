@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for SvelteKit Frontend
+# Multi-stage Dockerfile for SvelteKit Frontend with Node.js
 
 # Stage 1: Build the application
 FROM node:18-alpine AS builder
@@ -24,31 +24,28 @@ ENV VITE_API_URL=${VITE_API_URL}
 # Build the application
 RUN npm run build
 
-# Stage 2: Production server with nginx
-FROM nginx:alpine AS production
+# Stage 2: Production server with Node.js
+FROM node:18-alpine AS production
 
 # Install curl for health checks
 RUN apk add --no-cache curl
 
-# Copy built application from builder stage
-COPY --from=builder /app/build /usr/share/nginx/html
-
-# Copy custom nginx configuration
-COPY nginx.conf /etc/nginx/nginx.conf
-
 # Create non-root user for security
-RUN addgroup -g 1000 -S appuser && \
-    adduser -u 1000 -S appuser -G appuser
+RUN addgroup -S appuser && \
+    adduser -S appuser -G appuser
 
-# Set permissions
-RUN chown -R appuser:appuser /usr/share/nginx/html && \
-    chown -R appuser:appuser /var/cache/nginx && \
-    chown -R appuser:appuser /var/log/nginx && \
-    chown -R appuser:appuser /etc/nginx/conf.d
+# Set working directory
+WORKDIR /app
 
-# Create PID directory
-RUN touch /var/run/nginx.pid && \
-    chown -R appuser:appuser /var/run/nginx.pid
+# Copy built application from builder stage
+COPY --from=builder /app/build ./build
+COPY --from=builder /app/package*.json ./
+
+# Install only production dependencies
+RUN npm ci --omit=dev && npm cache clean --force
+
+# Change ownership to non-root user
+RUN chown -R appuser:appuser /app
 
 # Switch to non-root user
 USER appuser
@@ -60,5 +57,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 # Expose port
 EXPOSE 3000
 
-# Start nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Start the SvelteKit Node.js server
+CMD ["node", "build"]

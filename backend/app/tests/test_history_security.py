@@ -5,7 +5,6 @@ Tests security fixes including input sanitization, date validation, and paramete
 """
 
 from fastapi.testclient import TestClient
-from datetime import datetime, timedelta
 from urllib.parse import quote
 from app.main import app
 
@@ -57,26 +56,26 @@ def test_invalid_sort_by_parameter():
     print("✅ Invalid sort_by parameter rejection works")
 
 
-def test_date_range_validation_pydantic_model():
-    """Test that date range validation works at Pydantic model level directly"""
+def test_pagination_parameter_validation():
+    """Test that pagination parameters are properly validated"""
     from app.api.history import HistoryQueryParams
     from pydantic import ValidationError
 
-    # Test end_date before start_date - should be caught by Pydantic validator
-    start_date = datetime.now() - timedelta(days=1)
-    end_date = datetime.now() - timedelta(days=2)
-
-    # Test the Pydantic model validation directly
+    # Test invalid limit values
     try:
-        HistoryQueryParams(start_date=start_date, end_date=end_date, limit=10, offset=0)
-        assert False, "Expected ValidationError but none was raised"
+        HistoryQueryParams(limit=-1)
+        assert False, "Expected ValidationError for negative limit"
     except ValidationError as e:
-        error_text = str(e)
-        assert "end_date must be after start_date" in error_text
-        assert len(e.errors()) == 1
-        assert e.errors()[0]["type"] == "value_error"
+        assert "greater than or equal to 1" in str(e)
 
-    print("✅ Date range validation at Pydantic model level works")
+    # Test invalid offset values
+    try:
+        HistoryQueryParams(offset=-1)
+        assert False, "Expected ValidationError for negative offset"
+    except ValidationError as e:
+        assert "greater than or equal to 0" in str(e)
+
+    print("✅ Pagination parameter validation works")
 
 
 def test_search_term_length_limit():
@@ -171,26 +170,24 @@ def test_concurrent_requests_security():
     print("✅ Concurrent request security works")
 
 
-def test_malformed_date_handling():
-    """Test handling of malformed date parameters"""
-    malformed_dates = [
-        "not-a-date",
-        "2023-13-01",  # Invalid month
-        "2023-02-30",  # Invalid day
-        "2023/01/01",  # Wrong format
-        "01-01-2023",  # Wrong format
-        "<script>alert('xss')</script>",
-        "'; DROP TABLE --",
+def test_malformed_parameter_handling():
+    """Test handling of malformed parameters"""
+    malformed_params = [
+        ("limit", "not-a-number"),
+        ("offset", "invalid"),
+        ("sort_order", "invalid_order"),
+        ("limit", "999999"),  # Too large
+        ("offset", "-999"),  # Negative
     ]
 
-    for bad_date in malformed_dates:
-        response = client.get(f"/api/v1/history?start_date={quote(bad_date)}")
+    for param_name, bad_value in malformed_params:
+        response = client.get(f"/api/v1/history?{param_name}={quote(str(bad_value))}")
         # Should return validation error, not crash
         assert response.status_code == 422
         data = response.json()
         assert "error" in data or "detail" in data
 
-    print("✅ Malformed date handling works")
+    print("✅ Malformed parameter handling works")
 
 
 def test_empty_and_whitespace_search():

@@ -32,7 +32,7 @@
 			const response = await getHistory({
 				limit,
 				offset,
-				sort_by: 'created_at',
+				sort_by: 'id',
 				sort_order: 'desc'
 			});
 
@@ -171,11 +171,6 @@
 								>
 									Distance in Kilometers
 								</th>
-								<th
-									class="text-label px-6 py-4 text-left text-xs font-semibold tracking-wider uppercase"
-								>
-									Date
-								</th>
 							</tr>
 						</thead>
 						<tbody class="divide-y divide-gray-200 bg-white">
@@ -192,9 +187,6 @@
 									</td>
 									<td class="text-text px-6 py-4 text-sm font-medium">
 										{item.distance_km ? item.distance_km.toFixed(2) : 'N/A'} km
-									</td>
-									<td class="text-label px-6 py-4 text-sm">
-										{new Date(item.created_at).toLocaleDateString()}
 									</td>
 								</tr>
 							{/each}

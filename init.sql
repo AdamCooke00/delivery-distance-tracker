@@ -10,12 +10,10 @@ CREATE TABLE IF NOT EXISTS distance_queries (
     source_lng DECIMAL(11, 8),
     destination_lat DECIMAL(10, 8),
     destination_lng DECIMAL(11, 8),
-    distance_km DECIMAL(10, 3),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    distance_km DECIMAL(10, 3)
 );
 
 -- Create indexes for performance optimization
-CREATE INDEX IF NOT EXISTS idx_distance_queries_created_at ON distance_queries(created_at);
 CREATE INDEX IF NOT EXISTS idx_distance_queries_addresses ON distance_queries(source_address, destination_address);
 
 -- Grant privileges to the application user (if different from default)

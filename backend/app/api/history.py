@@ -3,12 +3,11 @@ History API endpoint for retrieving past distance queries.
 Provides pagination, filtering, sorting, and search capabilities.
 """
 
-from datetime import datetime
 from typing import Optional, List
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc, asc, or_
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field
 from app.models.database import SessionLocal
 from app.models.distance_query import DistanceQuery
 import logging
@@ -20,7 +19,7 @@ router = APIRouter()
 
 # Secure mapping for sort columns - eliminates dynamic attribute access vulnerability
 SORT_COLUMNS = {
-    "created_at": DistanceQuery.created_at,
+    "id": DistanceQuery.id,
     "distance_km": DistanceQuery.distance_km,
     "source_address": DistanceQuery.source_address,
     "destination_address": DistanceQuery.destination_address,
@@ -52,29 +51,15 @@ class HistoryQueryParams(BaseModel):
         default=10, ge=1, le=100, description="Number of items to return"
     )
     offset: int = Field(default=0, ge=0, description="Number of items to skip")
-    start_date: Optional[datetime] = Field(
-        None, description="Filter results from this date"
-    )
-    end_date: Optional[datetime] = Field(
-        None, description="Filter results up to this date"
-    )
     search: Optional[str] = Field(None, description="Search in addresses")
     sort_by: str = Field(
-        default="created_at",
+        default="id",
         description="Field to sort by",
-        pattern="^(created_at|distance_km|source_address|destination_address)$",
+        pattern="^(id|distance_km|source_address|destination_address)$",
     )
     sort_order: str = Field(
         default="desc", description="Sort order", pattern="^(asc|desc)$"
     )
-
-    @validator("end_date")
-    def validate_date_range(cls, v, values):
-        """Ensure end_date is after start_date if both are provided"""
-        if v and "start_date" in values and values["start_date"]:
-            if v < values["start_date"]:
-                raise ValueError("end_date must be after start_date")
-        return v
 
 
 class HistoryItem(BaseModel):
@@ -88,7 +73,6 @@ class HistoryItem(BaseModel):
     destination_lat: float
     destination_lng: float
     distance_km: float
-    created_at: datetime
 
     class Config:
         from_attributes = True
@@ -110,7 +94,7 @@ async def get_history(
     db: Session = Depends(get_db),
 ):
     """
-    Retrieve history of distance queries with pagination and filtering.
+    Retrieve history of distance queries with pagination, search, and sorting.
 
     Security features:
     - All parameter validation handled by Pydantic HistoryQueryParams model
@@ -121,12 +105,6 @@ async def get_history(
     try:
         # Start building the query
         query = db.query(DistanceQuery)
-
-        # Apply date filtering
-        if params.start_date:
-            query = query.filter(DistanceQuery.created_at >= params.start_date)
-        if params.end_date:
-            query = query.filter(DistanceQuery.created_at <= params.end_date)
 
         # Apply search filtering with sanitization
         if params.search:

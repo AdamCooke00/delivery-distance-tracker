@@ -5,7 +5,7 @@ This module defines the core data models and validation schemas for distance cal
 
 SQLAlchemy Model:
 - DistanceQuery: Database table model for storing distance calculation results
-- Indexes on created_at and addresses for query performance optimization
+- Indexes on addresses for query performance optimization
 - Decimal precision for accurate coordinate and distance storage
 
 Pydantic Schemas:
@@ -17,7 +17,6 @@ Field Validation Rules:
 - Addresses: Must be non-empty strings between 1-255 characters
 - Coordinates: Latitude (-90 to 90), Longitude (-180 to 180) with 8 decimal precision
 - Distance: Non-negative decimal with 3 decimal places for meter precision
-- Timestamps: Automatic UTC timestamp generation with timezone awareness
 
 Database Schema:
 ```sql
@@ -29,12 +28,10 @@ CREATE TABLE distance_queries (
     source_lng DECIMAL(11, 8),           -- 11 digits total for longitude range
     destination_lat DECIMAL(10, 8),
     destination_lng DECIMAL(11, 8),
-    distance_km DECIMAL(10, 3),          -- 3 decimal places for meter precision
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    distance_km DECIMAL(10, 3)           -- 3 decimal places for meter precision
 );
 
 -- Performance indexes
-CREATE INDEX idx_distance_queries_created_at ON distance_queries(created_at);
 CREATE INDEX idx_distance_queries_addresses ON distance_queries(source_address, destination_address);
 ```
 
@@ -58,15 +55,14 @@ Usage Examples:
 
 Performance Considerations:
 - Decimal fields ensure precision for financial/scientific calculations
-- Indexes optimize common query patterns (time-based, address-based)
+- Indexes optimize common query patterns (address-based)
 - Coordinate validation prevents invalid GPS data storage
 """
 
-from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from sqlalchemy import Column, Integer, String, Numeric, DateTime
+from sqlalchemy import Column, Integer, String, Numeric
 from pydantic import BaseModel, Field, field_validator
 
 from .database import Base
@@ -85,7 +81,6 @@ class DistanceQuery(Base):
     destination_lat = Column(Numeric(10, 8), nullable=True)
     destination_lng = Column(Numeric(11, 8), nullable=True)
     distance_km = Column(Numeric(10, 3), nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
 
 # Pydantic schemas for data validation and serialization
@@ -146,12 +141,10 @@ class DistanceQueryResponse(BaseModel):
     destination_lat: Optional[float] = None
     destination_lng: Optional[float] = None
     distance_km: Optional[float] = None
-    created_at: datetime
 
     class Config:
         from_attributes = True
         json_encoders = {
-            datetime: lambda dt: dt.isoformat(),
             Decimal: lambda d: float(d) if d is not None else None,
         }
 

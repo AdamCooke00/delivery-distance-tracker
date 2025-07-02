@@ -51,7 +51,6 @@ class TestDistanceEndToEndIntegration:
                 "source_coords",
                 "destination_coords",
                 "distance_km",
-                "created_at",
             ]
             for field in required_fields:
                 assert field in data, f"Missing field: {field}"

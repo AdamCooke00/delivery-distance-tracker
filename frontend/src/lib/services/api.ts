@@ -17,7 +17,6 @@ interface DistanceQueryResponse {
 	destination_lat: number | null;
 	destination_lng: number | null;
 	distance_km: number | null;
-	created_at: string;
 }
 
 interface HistoryItem {
@@ -29,7 +28,6 @@ interface HistoryItem {
 	destination_lat: number | null;
 	destination_lng: number | null;
 	distance_km: number | null;
-	created_at: string;
 }
 
 interface HistoryResponse {
@@ -102,8 +100,6 @@ class ApiService {
 	async getHistory(params?: {
 		limit?: number;
 		offset?: number;
-		start_date?: string;
-		end_date?: string;
 		search?: string;
 		sort_by?: string;
 		sort_order?: string;

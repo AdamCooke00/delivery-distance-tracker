@@ -28,7 +28,6 @@ def test_table_schema():
         "destination_lat": "NUMERIC",
         "destination_lng": "NUMERIC",
         "distance_km": "NUMERIC",
-        "created_at": "TIMESTAMP",
     }
 
     column_dict = {col["name"]: str(col["type"]) for col in columns}
@@ -51,7 +50,6 @@ def test_indexes_created():
 
     # Check for our custom indexes
     expected_indexes = [
-        "idx_distance_queries_created_at",
         "idx_distance_queries_addresses",
     ]
     for expected_index in expected_indexes:
